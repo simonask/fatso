@@ -12,9 +12,7 @@ main(int argc, char const* argv[])
   struct fatso fatso;
   int r;
 
-  fatso.program_name = argv[0];
-
-  if ((r = fatso_init(&fatso)) != 0) {
+  if ((r = fatso_init(&fatso, argv[0])) != 0) {
     return r;
   }
 
