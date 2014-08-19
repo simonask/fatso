@@ -5,7 +5,7 @@ HEADERS := fatso.h util.h
 %.o: %.c $(HEADERS)
 	$(CC) $(CFLAGS) -c -o $@ $<
 
-libfatso.a: fatso.o parser.o help.o util.o
+libfatso.a: fatso.o parser.o help.o util.o project.o install.o
 	libtool -static -o $@ $^
 
 fatso: main.o libfatso.a

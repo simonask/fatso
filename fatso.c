@@ -2,7 +2,7 @@
 #include "util.h"
 
 #include <getopt.h>
-#include <unistd.h>
+#include <unistd.h> // getwd
 #include <stdio.h>
 #include <stdlib.h> // malloc, free, exit
 #include <string.h>
@@ -37,6 +37,9 @@ fatso_init(struct fatso* f, const char* program_name) {
       exit(1);
     }
   }
+
+  // TODO: Adhere to -C option.
+  f->working_dir = getwd(NULL);
 
   return 0;
 }
