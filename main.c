@@ -19,7 +19,7 @@ main(int argc, char const* argv[])
   }
 
   if (argc < 2) {
-    return fatso_help(&fatso, argc, argv);
+    return fatso_help(&fatso, argc - 1, argv + 1);
   }
 
   static const named_command_t named_commands[] = {
