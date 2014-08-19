@@ -17,6 +17,7 @@ usage(const char* program_name) {
     "\n\tbuild        Builds the current Fatso project."
     "\n\tinstall      Installs dependencies for the current Fatso project."
     "\n\tupgrade      Upgrades dependencies for the current Fatso project."
+    "\n\tclean        Clean slate."
     "\n\tinfo         Displays info about a package."
     "\n\thelp         Displays this help text."
     "\n\tcflags       Outputs the necessary CFLAGS to build with project dependencies."
