@@ -20,8 +20,6 @@ fatso_file_exists(const char* path);
 int
 fatso_run(const char* command);
 
-
-
 #ifdef __cplusplus
 }
 #endif

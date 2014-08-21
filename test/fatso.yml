@@ -4,14 +4,14 @@ author: Simon Ask Ulsnes <simon@ulsnes.dk>
 toolchain: make
 
 dependencies:
-- ['wayward-support', '~> 0.0.0']
-- ['persistence', { git: 'https://github.com/simonask/persistence.get', tag: 'alpha-0' }]
+- ['yaml', '~> 0.1.4']
 
 defines:
   FATSO: 1
 
-development:
-  dependencies:
-  - ['lldb']
-  defines:
-    DEBUG: 1
+environments:
+  development:
+    dependencies:
+    - ['lldb']
+    defines:
+      DEBUG: 1
