@@ -1,10 +1,11 @@
 #include "fatso.h"
+#include "internal.h"
 #include "util.h"
 
 #include <getopt.h>
 #include <unistd.h> // getwd
 #include <stdio.h>
-#include <stdlib.h> // malloc, free, exit
+#include <stdlib.h> // exit
 #include <string.h>
 #include <stdarg.h>
 #include <sys/stat.h> // mkdir
@@ -25,7 +26,7 @@ fatso_init(struct fatso* f, const char* program_name) {
 
   const char* homedir = fatso_get_homedir();
   size_t homedir_len = strlen(homedir);
-  f->global_dir = malloc(homedir_len + 50);
+  f->global_dir = fatso_alloc(homedir_len + 50);
   strncpy(f->global_dir, homedir, homedir_len);
   strncat(f->global_dir, "/.fatso", 7);
 
@@ -46,8 +47,8 @@ fatso_init(struct fatso* f, const char* program_name) {
 
 void
 fatso_destroy(struct fatso* f) {
-  free(f->project);
-  free(f->global_dir);
+  fatso_free(f->project);
+  fatso_free(f->global_dir);
 }
 
 int
@@ -87,9 +88,9 @@ fatso_update_packages(struct fatso* f) {
   }
 
 out:
-  free(packages_dir);
-  free(packages_git_dir);
-  free(cmd);
+  fatso_free(packages_dir);
+  fatso_free(packages_git_dir);
+  fatso_free(cmd);
   return r;
 }
 

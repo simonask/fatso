@@ -8,6 +8,11 @@
 extern "C" {
 #endif
 
+void* fatso_alloc(size_t size);
+void* fatso_calloc(size_t count, size_t size);
+void* fatso_reallocf(void* ptr, size_t new_size);
+void fatso_free(void* ptr);
+
 struct fatso_version {
   char* string;
   char** components;

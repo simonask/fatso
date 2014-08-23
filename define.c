@@ -11,6 +11,6 @@ fatso_define_init(struct fatso_define* def, const char* name, const char* value)
 
 void
 fatso_define_destroy(struct fatso_define* def) {
-  free(def->key);
-  free(def->value);
+  fatso_free(def->key);
+  fatso_free(def->value);
 }

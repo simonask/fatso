@@ -1,8 +1,8 @@
 #include "internal.h"
 
 #include <string.h>
-#include <ctype.h> // isalpha, isspace
-#include <stdlib.h> // free, realloc, calloc
+#include <ctype.h>  // isalpha, isspace
+#include <stdlib.h> // atoi
 
 const char*
 fatso_version_requirement_to_string(enum fatso_version_requirement req) {
@@ -23,20 +23,30 @@ fatso_version_init(struct fatso_version* ver) {
 }
 
 void
+fatso_version_copy(struct fatso_version* a, const struct fatso_version* b) {
+  fatso_version_destroy(a);
+  a->string = strdup(b->string);
+  a->num_components = b->num_components;
+  for (size_t i = 0; i < b->num_components; ++i) {
+    fatso_version_append_component(a, b->components[i], strlen(b->components[i]));
+  }
+}
+
+void
 fatso_version_destroy(struct fatso_version* ver) {
   for (size_t i = 0; i < ver->num_components; ++i) {
-    free(ver->components[i]);
+    fatso_free(ver->components[i]);
   }
-  free(ver->components);
+  fatso_free(ver->components);
   ver->components = NULL;
   ver->num_components = 0;
-  free(ver->string);
+  fatso_free(ver->string);
 }
 
 void
 fatso_version_append_component(struct fatso_version* ver, const char* component, size_t n) {
   if (n == 0) return;
-  ver->components = realloc(ver->components, (ver->num_components + 1) * sizeof(char*));
+  ver->components = fatso_reallocf(ver->components, (ver->num_components + 1) * sizeof(char*));
   ver->components[ver->num_components++] = strndup(component, n);
 }
 

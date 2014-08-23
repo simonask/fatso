@@ -10,14 +10,14 @@ fatso_environment_init(struct fatso_environment* e) {
 
 void
 fatso_environment_destroy(struct fatso_environment* e) {
-  free(e->name);
+  fatso_free(e->name);
   for (size_t i = 0; i < e->num_dependencies; ++i) {
     fatso_dependency_destroy(&e->dependencies[i]);
   }
-  free(e->dependencies);
+  fatso_free(e->dependencies);
   for (size_t i = 0; i < e->num_defines; ++i) {
     fatso_define_destroy(&e->defines[i]);
   }
-  free(e->defines);
+  fatso_free(e->defines);
   memset(e, 0, sizeof(*e));
 }

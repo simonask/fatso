@@ -14,23 +14,23 @@ void fatso_project_init(struct fatso_project* p) {
 
 void
 fatso_project_destroy(struct fatso_project* p) {
-  free(p->path);
-  free(p->name);
+  fatso_free(p->path);
+  fatso_free(p->name);
   fatso_version_destroy(&p->version);
-  free(p->author);
-  free(p->toolchain);
+  fatso_free(p->author);
+  fatso_free(p->toolchain);
   fatso_environment_destroy(&p->base_environment);
   for (size_t i = 0; i < p->num_environments; ++i) {
     fatso_environment_destroy(&p->environments[i]);
   }
-  free(p->environments);
+  fatso_free(p->environments);
   memset(p, 0, sizeof(*p));
 }
 
 void
 fatso_unload_project(struct fatso* f) {
   fatso_project_destroy(f->project);
-  free(f->project);
+  fatso_free(f->project);
   f->project = NULL;
 }
 
@@ -48,11 +48,11 @@ find_fatso_yml(const char* working_dir) {
     *p = '\0';
     sprintf(check, "%s/fatso.yml", r);
   }
-  free(check);
+  fatso_free(check);
   return r;
 not_found:
-  free(r);
-  free(check);
+  fatso_free(r);
+  fatso_free(check);
   return NULL;
 }
 
@@ -130,7 +130,7 @@ parse_fatso_dependency(struct fatso_dependency* dep, yaml_document_t* doc, yaml_
   }
 
 out:
-  free(version_requirement_string);
+  fatso_free(version_requirement_string);
   return r;
 error:
   fatso_dependency_destroy(dep);
@@ -146,7 +146,7 @@ parse_fatso_environment(struct fatso_environment* e, yaml_document_t* doc, yaml_
     size_t len = fatso_yaml_sequence_length(dependencies);
     if (len != 0) {
       e->num_dependencies = len;
-      e->dependencies = calloc(len, sizeof(struct fatso_dependency));
+      e->dependencies = fatso_calloc(len, sizeof(struct fatso_dependency));
       for (size_t i = 0; i < len; ++i) {
         r = parse_fatso_dependency(&e->dependencies[i], doc, fatso_yaml_sequence_lookup(doc, dependencies, i), out_error_message);
         if (r != 0)
@@ -160,7 +160,7 @@ parse_fatso_environment(struct fatso_environment* e, yaml_document_t* doc, yaml_
     size_t len = fatso_yaml_mapping_length(defines);
     if (len != 0) {
       e->num_defines = len;
-      e->defines = calloc(len, sizeof(struct fatso_define));
+      e->defines = fatso_calloc(len, sizeof(struct fatso_define));
       for (size_t i = 0; i < len; ++i) {
         yaml_node_pair_t* pair = &defines->data.mapping.pairs.start[i];
         yaml_node_t* key = yaml_document_get_node(doc, pair->key);
@@ -192,7 +192,7 @@ parse_fatso_project(struct fatso_project* p, yaml_document_t* doc, char** out_er
   if (version_node) {
     char* version = fatso_yaml_scalar_strdup(version_node);
     fatso_version_from_string(&p->version, version);
-    free(version);
+    fatso_free(version);
   }
 
   yaml_node_t* author_node = fatso_yaml_mapping_lookup(doc, root, "author");
@@ -214,7 +214,7 @@ parse_fatso_project(struct fatso_project* p, yaml_document_t* doc, char** out_er
   if (environments_node && environments_node->type == YAML_SEQUENCE_NODE) {
     size_t len = fatso_yaml_sequence_length(environments_node);
     p->num_environments = len;
-    p->environments = calloc(len, sizeof(struct fatso_environment));
+    p->environments = fatso_calloc(len, sizeof(struct fatso_environment));
     for (size_t i = 0; i < len; ++i) {
       r = parse_fatso_environment(&p->environments[i], doc, fatso_yaml_sequence_lookup(doc, environments_node, i), out_error_message);
       if (r != 0)
@@ -266,7 +266,7 @@ fatso_load_project(struct fatso* f) {
     goto out;
   }
 
-  f->project = malloc(sizeof(struct fatso_project));
+  f->project = fatso_alloc(sizeof(struct fatso_project));
   fatso_project_init(f->project);
   f->project->path = find_fatso_yml(f->working_dir);
 
@@ -283,8 +283,8 @@ fatso_load_project(struct fatso* f) {
   }
 
 out:
-  free(error_message);
-  free(fatso_yml);
+  fatso_free(error_message);
+  fatso_free(fatso_yml);
   return r;
 error:
   r = 1;

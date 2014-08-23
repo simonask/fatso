@@ -52,7 +52,7 @@ static void run_test(void(*f)(), const char* name) {
     printf(RED "fail" RESET "\nLocation: %s:%d\nAssertion: %s\n", g_failed_file, g_failed_line_number, g_failed_expression);
     if (g_failed_info) {
       printf("Info: %s\n", g_failed_info);
-      free(g_failed_info);
+      fatso_free(g_failed_info);
       g_failed_info = NULL;
     }
   } else {
