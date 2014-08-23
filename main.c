@@ -1,5 +1,6 @@
 #include "fatso.h"
 #include "internal.h"
+#include "util.h"
 #include <string.h>
 #include <getopt.h>
 #include <stdio.h>
@@ -19,8 +20,10 @@ main(int argc, char* const* argv)
     return r;
   }
 
-  int filtered_argc = 0;
-  char** filtered_argv = NULL;
+  struct {
+    size_t size;
+    char** data;
+  } filtered_args = {0, NULL};
 
   int c;
   while (1) {
@@ -40,20 +43,20 @@ main(int argc, char* const* argv)
       case 'C':
         fatso_set_working_directory(&fatso, optarg);
         break;
-      default:
-        filtered_argv = fatso_reallocf(filtered_argv, sizeof(char*) * (filtered_argc + 1));
-        filtered_argv[filtered_argc++] = strdup(argv[optind]);
+      default: {
+        char* append = strdup(argv[optind]);
+        fatso_push_back_v(&filtered_args, append);
         break;
+      }
     }
   }
   while (optind < argc) {
-    filtered_argv = fatso_reallocf(filtered_argv, sizeof(char*) * (filtered_argc + 1));
-    filtered_argv[filtered_argc++] = strdup(argv[optind]);
-    ++optind;
+    char* append = strdup(argv[optind++]);
+    fatso_push_back_v(&filtered_args, append);
   }
 
-  argc = filtered_argc;
-  argv = filtered_argv;
+  argc = filtered_args.size;
+  argv = filtered_args.data;
 
   if (argc == 0) {
     return fatso_help(&fatso, 0, NULL);

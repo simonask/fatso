@@ -20,6 +20,13 @@ fatso_file_exists(const char* path);
 int
 fatso_run(const char* command);
 
+#define fatso_push_back(data, size, new_element, element_size) \
+  (data) = fatso_reallocf((data), ((size) + 1) * (element_size)); \
+  memcpy(&(data)[(size)++], &(new_element), element_size)
+
+#define fatso_push_back_v(array, new_element) \
+  fatso_push_back((array)->data, (array)->size, (new_element), sizeof(new_element))
+
 #ifdef __cplusplus
 }
 #endif

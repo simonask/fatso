@@ -4,19 +4,19 @@
 static void test_fatso_version_from_string() {
   struct fatso_version ver;
   fatso_version_from_string(&ver, "0.1.2a");
-  ASSERT(ver.num_components == 4);
-  ASSERT(strcmp(ver.components[0], "0") == 0);
-  ASSERT(strcmp(ver.components[1], "1") == 0);
-  ASSERT(strcmp(ver.components[2], "2") == 0);
-  ASSERT(strcmp(ver.components[3], "a") == 0);
+  ASSERT(ver.components.size == 4);
+  ASSERT(strcmp(ver.components.data[0], "0") == 0);
+  ASSERT(strcmp(ver.components.data[1], "1") == 0);
+  ASSERT(strcmp(ver.components.data[2], "2") == 0);
+  ASSERT(strcmp(ver.components.data[3], "a") == 0);
   fatso_version_destroy(&ver);
 
   fatso_version_from_string(&ver, "a.2b");
-  ASSERT_FMT(ver.num_components == 3, "got %zu", ver.num_components);
+  ASSERT_FMT(ver.components.size == 3, "got %zu", ver.components.size);
   fatso_version_destroy(&ver);
 
   fatso_version_from_string(&ver, "a2b");
-  ASSERT_FMT(ver.num_components == 3, "got %zu", ver.num_components);
+  ASSERT_FMT(ver.components.size == 3, "got %zu", ver.components.size);
   fatso_version_destroy(&ver);
 }
 

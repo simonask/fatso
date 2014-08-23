@@ -1,4 +1,5 @@
 #include "internal.h"
+#include "util.h"
 
 #include <string.h>
 #include <ctype.h>  // isalpha, isspace
@@ -26,28 +27,27 @@ void
 fatso_version_copy(struct fatso_version* a, const struct fatso_version* b) {
   fatso_version_destroy(a);
   a->string = b->string ? strdup(b->string) : NULL;
-  a->num_components = b->num_components;
-  for (size_t i = 0; i < b->num_components; ++i) {
-    fatso_version_append_component(a, b->components[i], strlen(b->components[i]));
+  for (size_t i = 0; i < b->components.size; ++i) {
+    fatso_version_append_component(a, b->components.data[i], strlen(b->components.data[i]));
   }
 }
 
 void
 fatso_version_destroy(struct fatso_version* ver) {
-  for (size_t i = 0; i < ver->num_components; ++i) {
-    fatso_free(ver->components[i]);
+  for (size_t i = 0; i < ver->components.size; ++i) {
+    fatso_free(ver->components.data[i]);
   }
-  fatso_free(ver->components);
-  ver->components = NULL;
-  ver->num_components = 0;
+  fatso_free(ver->components.data);
+  ver->components.data = NULL;
+  ver->components.size = 0;
   fatso_free(ver->string);
 }
 
 void
 fatso_version_append_component(struct fatso_version* ver, const char* component, size_t n) {
   if (n == 0) return;
-  ver->components = fatso_reallocf(ver->components, (ver->num_components + 1) * sizeof(char*));
-  ver->components[ver->num_components++] = strndup(component, n);
+  char* append = strndup(component, n);
+  fatso_push_back_v(&ver->components, append);
 }
 
 int
@@ -57,8 +57,8 @@ fatso_version_from_string(struct fatso_version* ver, const char* str) {
     ALPHA,
     NUMERIC,
   } state = INITIAL;
-  ver->components = NULL;
-  ver->num_components = 0;
+  ver->components.data = NULL;
+  ver->components.size = 0;
   const char* component_start = str;
   const char* p = str;
 
@@ -103,12 +103,12 @@ fatso_version_from_string(struct fatso_version* ver, const char* str) {
 
 int
 fatso_version_compare(const struct fatso_version* a, const struct fatso_version* b) {
-  size_t n = a->num_components < b->num_components ? a->num_components : b->num_components;
+  size_t n = a->components.size < b->components.size ? a->components.size : b->components.size;
   int r;
 
   for (size_t i = 0; i < n; ++i) {
-    const char* ac = a->components[i];
-    const char* bc = b->components[i];
+    const char* ac = a->components.data[i];
+    const char* bc = b->components.data[i];
     if (isalpha(*ac) && isalpha(*bc)) {
       // Both are alphanumeric, use strcmp:
       r = strcmp(ac, bc);
@@ -133,7 +133,7 @@ fatso_version_compare(const struct fatso_version* a, const struct fatso_version*
 
   // Everything else was equal, so compare the number of components, where the
   // shortest comes first:
-  return ((int)a->num_components - (int)b->num_components);
+  return ((int)a->components.size - (int)b->components.size);
 }
 
 int

@@ -15,8 +15,11 @@ void fatso_free(void* ptr);
 
 struct fatso_version {
   char* string;
-  char** components;
-  size_t num_components;
+
+  struct {
+    char** data;
+    size_t size;
+  } components;
 };
 
 void fatso_version_init(struct fatso_version*);
