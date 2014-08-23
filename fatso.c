@@ -11,7 +11,7 @@
 #include <sys/stat.h> // mkdir
 
 int
-fatso_update(struct fatso* f, int argc, char const* argv[]) {
+fatso_update(struct fatso* f, int argc, char* const* argv) {
   printf("<UPDATE> %s\n", f->global_dir);
   return 0;
 }
@@ -39,16 +39,26 @@ fatso_init(struct fatso* f, const char* program_name) {
     }
   }
 
-  // TODO: Adhere to -C option.
   f->working_dir = getwd(NULL);
 
   return 0;
+}
+
+void fatso_set_home_directory(struct fatso* f, const char* path) {
+  free(f->global_dir);
+  f->global_dir = strdup(path);
+}
+
+void fatso_set_working_directory(struct fatso* f, const char* path) {
+  free(f->working_dir);
+  f->working_dir = strdup(path);
 }
 
 void
 fatso_destroy(struct fatso* f) {
   fatso_free(f->project);
   fatso_free(f->global_dir);
+  fatso_free(f->working_dir);
 }
 
 int

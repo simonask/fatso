@@ -53,7 +53,7 @@ struct command_usage {
 };
 
 int
-fatso_help(struct fatso* f, int argc, char const* argv[]) {
+fatso_help(struct fatso* f, int argc, char* const* argv) {
 
   static const struct command_usage cu[] = {
     {"init", init_usage},

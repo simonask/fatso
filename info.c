@@ -36,7 +36,7 @@ display_info_for_project(const struct fatso_project* p) {
 }
 
 int
-fatso_info(struct fatso* f, int argc, char const* argv[]) {
+fatso_info(struct fatso* f, int argc, char* const* argv) {
   int r;
   if (argc == 1) {
     r = fatso_load_project(f);

@@ -2,7 +2,7 @@
 #include <stdio.h>
 
 int
-fatso_install(struct fatso* f, int argc, char const* argv[]) {
+fatso_install(struct fatso* f, int argc, char* const* argv) {
   int r = 0;
 
   r = fatso_load_project(f);

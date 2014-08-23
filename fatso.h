@@ -9,7 +9,7 @@ extern "C" {
 struct fatso;
 struct fatso_project;
 
-typedef int(*fatso_command_t)(struct fatso*, int argc, char const* argv[]);
+typedef int(*fatso_command_t)(struct fatso*, int argc, char* const* argv);
 
 struct fatso {
   const char* program_name;
@@ -21,6 +21,8 @@ struct fatso {
 
 int fatso_init(struct fatso*, const char* program_name);
 void fatso_destroy(struct fatso*);
+void fatso_set_home_directory(struct fatso*, const char*);
+void fatso_set_working_directory(struct fatso*, const char*);
 
 // Repository functions:
 int fatso_update_packages(struct fatso*);
@@ -37,10 +39,10 @@ int fatso_install_dependencies(struct fatso*);
 const char* fatso_project_path(struct fatso*);
 
 // Commands:
-int fatso_install(struct fatso*, int argc, char const* argv[]);
-int fatso_update(struct fatso*, int argc, char const* argv[]);
-int fatso_help(struct fatso*, int argc, char const* argv[]);
-int fatso_info(struct fatso*, int argc, char const* argv[]);
+int fatso_install(struct fatso*, int argc, char* const* argv);
+int fatso_update(struct fatso*, int argc, char* const* argv);
+int fatso_help(struct fatso*, int argc, char* const* argv);
+int fatso_info(struct fatso*, int argc, char* const* argv);
 
 #ifdef __cplusplus
 }
