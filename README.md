@@ -11,3 +11,28 @@ Fatso supports the following build systems:
 - TODO
 
 Fatso is still in very early stages of development.
+
+
+Dependencies
+------------
+
+- POSIX system (Linux, OS X)
+- GNU Make
+- C99 compiler
+- [libyaml](http://pyyaml.org/wiki/LibYAML)
+- [Git](http://git-scm.com/) (`git` tool must be in path)
+
+
+Building
+--------
+
+Run `make`.
+
+Run `make test` to build and run tests.
+
+
+Windows Support
+---------------
+
+Windows support is not a priority at the moment, and design decisions will not be made with non-POSIX systems in mind. However,
+patches to accommodate POSIX layers on Windows such as Cygwin will be accepted.
