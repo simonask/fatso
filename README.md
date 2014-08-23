@@ -17,8 +17,8 @@ Dependencies
 ------------
 
 - POSIX system (Linux, OS X)
-- GNU Make
-- C99 compiler
+- GNU Make or compatible
+- C99 compiler (Clang or GCC should both work)
 - [libyaml](http://pyyaml.org/wiki/LibYAML)
 - [Git](http://git-scm.com/) (`git` tool must be in path)
 
