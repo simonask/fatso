@@ -271,6 +271,7 @@ fatso_load_project(struct fatso* f) {
   f->project->path = find_fatso_yml(f->working_dir);
 
   if (!f->project->path) {
+    fprintf(stderr, "Error: fatso.yml not found in this or parent directories. Aborting.\n");
     goto error;
   }
 
@@ -286,6 +287,7 @@ out:
   free(fatso_yml);
   return r;
 error:
+  r = 1;
   fatso_unload_project(f);
   goto out;
 }
