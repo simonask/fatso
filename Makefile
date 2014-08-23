@@ -2,7 +2,7 @@ all: fatso
 
 CFLAGS := $(CFLAGS) -O0 -g -Wall -Werror
 
-HEADERS := fatso.h util.h
+HEADERS := fatso.h util.h internal.h
 OBJECTS := fatso.o parser.o help.o util.o project.o install.o yaml.o version.o dependency.o define.o environment.o info.o memory.o
 
 %.o: %.c $(HEADERS)
