@@ -57,53 +57,6 @@ not_found:
 }
 
 static int
-parse_version_requirement(struct fatso_dependency* dep, const char* str, char** out_error_message) {
-  const char* p = str;
-
-  while (*p && isspace(*p)) ++p;
-
-  switch (*p) {
-    case '~': {
-      if (p[1] == '>') {
-        dep->version_requirement = FATSO_VERSION_APPROXIMATELY;
-        p += 2;
-        break;
-      }
-    }
-    case '>': {
-      if (p[1] == '=') {
-        dep->version_requirement = FATSO_VERSION_GE;
-        ++p;
-      } else {
-        dep->version_requirement = FATSO_VERSION_GT;
-      }
-      ++p;
-      break;
-    }
-    case '<': {
-      if (p[1] == '=') {
-        dep->version_requirement = FATSO_VERSION_LE;
-        ++p;
-      } else {
-        dep->version_requirement = FATSO_VERSION_LT;
-      }
-      ++p;
-      break;
-    }
-    case '=': {
-      dep->version_requirement = FATSO_VERSION_EQ;
-      ++p;
-      break;
-    }
-    default: break;
-  }
-  while (*p && isspace(*p)) ++p;
-
-
-  return fatso_version_from_string(&dep->version, p);
-}
-
-static int
 parse_fatso_dependency(struct fatso_dependency* dep, yaml_document_t* doc, yaml_node_t* node, char** out_error_message) {
   int r = 1;
   char* version_requirement_string = NULL;
@@ -114,14 +67,16 @@ parse_fatso_dependency(struct fatso_dependency* dep, yaml_document_t* doc, yaml_
   }
 
   yaml_node_t* package_name = fatso_yaml_sequence_lookup(doc, node, 0);
-  dep->name = fatso_yaml_scalar_strdup(package_name);
 
   yaml_node_t* version_or_options = fatso_yaml_sequence_lookup(doc, node, 1);
+  struct fatso_constraint constraint = {{0}}; // TODO: Support >1 constraint
   if (version_or_options == NULL) {
-    dep->version_requirement = FATSO_VERSION_ANY;
+    fatso_version_from_string(&constraint.version, "");
+    constraint.version_requirement = FATSO_VERSION_ANY;
   } else if (version_or_options->type == YAML_SCALAR_NODE) {
     version_requirement_string = fatso_yaml_scalar_strdup(version_or_options);
-    r = parse_version_requirement(dep, version_requirement_string, out_error_message);
+    struct fatso_constraint constraint;
+    r = fatso_constraint_from_string(&constraint, version_requirement_string);
     if (r != 0)
       goto error;
   } else {
@@ -129,6 +84,9 @@ parse_fatso_dependency(struct fatso_dependency* dep, yaml_document_t* doc, yaml_
     goto out;
   }
 
+  char* name = fatso_yaml_scalar_strdup(package_name);
+  fatso_dependency_init(dep, name, &constraint, 1);
+  fatso_free(name);
 out:
   fatso_free(version_requirement_string);
   return r;

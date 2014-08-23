@@ -20,6 +20,8 @@ struct fatso_version {
 };
 
 void fatso_version_init(struct fatso_version*);
+void fatso_version_copy(struct fatso_version* dst, const struct fatso_version* src);
+void fatso_version_move(struct fatso_version* dst, struct fatso_version* src);
 void fatso_version_destroy(struct fatso_version*);
 void fatso_version_append_component(struct fatso_version*, const char* component, size_t n);
 int fatso_version_from_string(struct fatso_version*, const char*);
@@ -39,13 +41,21 @@ enum fatso_version_requirement {
 
 const char* fatso_version_requirement_to_string(enum fatso_version_requirement);
 
-struct fatso_dependency {
-  char* name;
+struct fatso_constraint {
   struct fatso_version version;
   enum fatso_version_requirement version_requirement;
 };
 
-void fatso_dependency_init(struct fatso_dependency*, const char* name, struct fatso_version* version, enum fatso_version_requirement);
+int fatso_constraint_from_string(struct fatso_constraint*, const char*);
+void fatso_constraint_destroy(struct fatso_constraint*);
+
+struct fatso_dependency {
+  char* name;
+  size_t num_constraints;
+  struct fatso_constraint* constraints;
+};
+
+void fatso_dependency_init(struct fatso_dependency*, const char* name, const struct fatso_constraint* constraints, size_t num_constraints);
 void fatso_dependency_destroy(struct fatso_dependency*);
 
 struct fatso_define {

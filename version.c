@@ -25,7 +25,7 @@ fatso_version_init(struct fatso_version* ver) {
 void
 fatso_version_copy(struct fatso_version* a, const struct fatso_version* b) {
   fatso_version_destroy(a);
-  a->string = strdup(b->string);
+  a->string = b->string ? strdup(b->string) : NULL;
   a->num_components = b->num_components;
   for (size_t i = 0; i < b->num_components; ++i) {
     fatso_version_append_component(a, b->components[i], strlen(b->components[i]));
@@ -144,4 +144,56 @@ fatso_version_compare_t(void* thunk, const void* a, const void* b) {
 const char*
 fatso_version_string(const struct fatso_version* ver) {
   return ver->string;
+}
+
+void
+fatso_constraint_destroy(struct fatso_constraint* c) {
+  fatso_version_destroy(&c->version);
+}
+
+int
+fatso_constraint_from_string(struct fatso_constraint* c, const char* str) {
+  const char* p = str;
+
+  while (*p && isspace(*p)) ++p;
+
+  switch (*p) {
+    case '~': {
+      if (p[1] == '>') {
+        c->version_requirement = FATSO_VERSION_APPROXIMATELY;
+        p += 2;
+        break;
+      }
+    }
+    case '>': {
+      if (p[1] == '=') {
+        c->version_requirement = FATSO_VERSION_GE;
+        ++p;
+      } else {
+        c->version_requirement = FATSO_VERSION_GT;
+      }
+      ++p;
+      break;
+    }
+    case '<': {
+      if (p[1] == '=') {
+        c->version_requirement = FATSO_VERSION_LE;
+        ++p;
+      } else {
+        c->version_requirement = FATSO_VERSION_LT;
+      }
+      ++p;
+      break;
+    }
+    case '=': {
+      c->version_requirement = FATSO_VERSION_EQ;
+      ++p;
+      break;
+    }
+    default: break;
+  }
+  while (*p && isspace(*p)) ++p;
+
+
+  return fatso_version_from_string(&c->version, p);
 }

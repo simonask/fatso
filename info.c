@@ -11,7 +11,20 @@ display_info_for_project(const struct fatso_project* p) {
   // TODO: Use consolidated dependencies.
   for (size_t i = 0; i < p->base_environment.num_dependencies; ++i) {
     const struct fatso_dependency* dep = &p->base_environment.dependencies[i];
-    printf("  %s %s %s\n", dep->name, fatso_version_requirement_to_string(dep->version_requirement), fatso_version_string(&dep->version));
+    printf("  %s", dep->name);
+    if (dep->num_constraints) {
+      printf(" (");
+      for (size_t i = 0; i < dep->num_constraints; ++i) {
+        const struct fatso_constraint* c = &dep->constraints[i];
+        const char* vs = fatso_version_string(&c->version);
+        printf("%s%s%s", fatso_version_requirement_to_string(c->version_requirement), vs ? " " : "", vs ? vs : "");
+        if (i + 1 != dep->num_constraints) {
+          printf(", ");
+        }
+      }
+      printf(")");
+    }
+    printf("\n");
   }
 
   printf("Defines:\n");
