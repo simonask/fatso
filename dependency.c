@@ -30,3 +30,45 @@ fatso_dependency_destroy(struct fatso_dependency* dep) {
   dep->name = NULL;
   dep->constraints.data = NULL;
 }
+
+struct fatso_dependency_graph {
+  FATSO_ARRAY(struct fatso_package*) packages;
+};
+
+static int
+compare_package_pointers_by_name(const void* a, const void* b) {
+  const struct fatso_package* pa = a;
+  const struct fatso_package* pb = b;
+  return strcmp(pa->name, pb->name);
+}
+
+struct fatso_dependency_graph*
+fatso_dependency_graph_new() {
+  return fatso_alloc(sizeof(struct fatso_dependency_graph));
+}
+
+struct fatso_dependency_graph*
+fatso_dependency_graph_copy(struct fatso_dependency_graph* graph) {
+  return fatso_dependency_graph_new();
+}
+
+void
+fatso_dependency_graph_free(struct fatso_dependency_graph* graph) {
+  // TODO: Destructor
+  fatso_free(graph);
+}
+
+void
+fatso_dependency_graph_add_package(struct fatso_dependency_graph* graph, struct fatso_package* package) {
+  fatso_multiset_insert_v(&graph->packages, &package, compare_package_pointers_by_name);
+}
+
+enum fatso_dependency_graph_resolution_status
+fatso_dependency_graph_resolve(struct fatso_dependency_graph* graph) {
+  return FATSO_DEPENDENCY_GRAPH_CONFLICT; // TODO
+}
+
+void
+fatso_dependency_graph_topological_sort(struct fatso_dependency_graph* graph, struct fatso_package*** out_list, size_t* out_size) {
+
+}

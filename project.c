@@ -10,21 +10,14 @@
 
 void fatso_project_init(struct fatso_project* p) {
   memset(p, 0, sizeof(*p));
+  fatso_package_init(&p->package);
 }
 
 void
 fatso_project_destroy(struct fatso_project* p) {
   fatso_free(p->path);
-  fatso_free(p->name);
-  fatso_version_destroy(&p->version);
-  fatso_free(p->author);
-  fatso_free(p->toolchain);
-  fatso_environment_destroy(&p->base_environment);
-  for (size_t i = 0; i < p->environments.size; ++i) {
-    fatso_environment_destroy(&p->environments.data[i]);
-  }
-  fatso_free(p->environments.data);
-  memset(p, 0, sizeof(*p));
+  p->path = NULL;
+  fatso_package_destroy(&p->package);
 }
 
 void
@@ -134,7 +127,7 @@ out:
 }
 
 static int
-parse_fatso_project(struct fatso_project* p, yaml_document_t* doc, char** out_error_message) {
+parse_fatso_package(struct fatso_package* p, yaml_document_t* doc, char** out_error_message) {
   yaml_node_t* root = yaml_document_get_root_node(doc);
   if (root == NULL) {
     *out_error_message = strdup("YAML file does not contain a document");
@@ -204,7 +197,7 @@ parse_fatso_yml(struct fatso_project* p, const char* file, char** out_error_mess
     goto out_doc;
   }
 
-  r = parse_fatso_project(p, &doc, out_error_message);
+  r = parse_fatso_package(&p->package, &doc, out_error_message);
 out_doc:
   yaml_document_delete(&doc);
 out:
@@ -268,14 +261,31 @@ fatso_load_dependency_graph(struct fatso* f) {
 }
 
 int fatso_generate_dependency_graph(struct fatso* f) {
-  fprintf(stderr, "%s: NIY\n", __func__);
+  int r = 0;
 
-  // struct fatso_dependency_graph* candidate = fatso_dependency_graph_new();
-  // for (size_t i = 0; i < f->project->dependencies.size; ++i) {
+  struct fatso_dependency_graph* candidate = fatso_dependency_graph_new();
+  fatso_dependency_graph_add_package(candidate, &f->project->package);
+  enum fatso_dependency_graph_resolution_status status = fatso_dependency_graph_resolve(candidate);
+  switch (status) {
+    case FATSO_DEPENDENCY_GRAPH_CONFLICT: {
+      fprintf(stderr, "Could not generate dependency graph. Conflicts:\n");
+      // TODO: Print conflicts.
+      r = 1;
+      break;
+    }
+    case FATSO_DEPENDENCY_GRAPH_CIRCULAR: {
+      fprintf(stderr, "Could not generate dependency graph, because there was a circular dependency.\n");
+      r = 1;
+      break;
+    }
+    case FATSO_DEPENDENCY_GRAPH_SUCCESS: {
+      fatso_dependency_graph_topological_sort(candidate, &f->project->install_order.data, &f->project->install_order.size);
+      break;
+    }
+  }
 
-  // }
-  // int r = fatso_dependency_graph_resolve(candidate);
-  // fatso_dependency_graph_destroy(candidate);
+  fatso_dependency_graph_free(candidate);
+  return r;
 
   // Add dependencies with constraints to open set.
   // For each dependency:

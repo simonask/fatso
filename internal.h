@@ -74,19 +74,41 @@ struct fatso_environment {
 void fatso_environment_init(struct fatso_environment*);
 void fatso_environment_destroy(struct fatso_environment*);
 
-struct fatso_project {
-  char* path;
+struct fatso_package {
   char* name;
   struct fatso_version version;
   char* author;
   char* toolchain; // TODO: Autodetect
-
   struct fatso_environment base_environment;
   FATSO_ARRAY(struct fatso_environment) environments;
 };
 
+void fatso_package_init(struct fatso_package*);
+void fatso_package_destroy(struct fatso_package*);
+
+struct fatso_project {
+  char* path;
+  struct fatso_package package;
+  FATSO_ARRAY(struct fatso_package*) install_order;
+};
+
 void fatso_project_init(struct fatso_project*);
 void fatso_project_destroy(struct fatso_project*);
+
+enum fatso_dependency_graph_resolution_status {
+  FATSO_DEPENDENCY_GRAPH_SUCCESS,
+  FATSO_DEPENDENCY_GRAPH_CONFLICT,
+  FATSO_DEPENDENCY_GRAPH_CIRCULAR,
+};
+
+struct fatso_dependency_graph;
+struct fatso_dependency_graph* fatso_dependency_graph_new();
+struct fatso_dependency_graph* fatso_dependency_graph_copy(struct fatso_dependency_graph*);
+void fatso_dependency_graph_free(struct fatso_dependency_graph*);
+void fatso_dependency_graph_add_package(struct fatso_dependency_graph*, struct fatso_package*);
+void fatso_dependency_graph_add_dependency(struct fatso_dependency_graph*, struct fatso_dependency*);
+enum fatso_dependency_graph_resolution_status fatso_dependency_graph_resolve(struct fatso_dependency_graph*);
+void fatso_dependency_graph_topological_sort(struct fatso_dependency_graph*, struct fatso_package***, size_t*);
 
 struct yaml_node_s;
 struct yaml_document_s;

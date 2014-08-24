@@ -4,8 +4,8 @@
 #include <stdio.h>
 
 static void
-display_info_for_project(const struct fatso_project* p) {
-  printf("Project: %s\nAuthor: %s\nVersion: %s\nToolchain: %s\n", p->name, p->author, fatso_version_string(&p->version), p->toolchain);
+display_info_for_package(const struct fatso_package* p) {
+  printf("Package: %s\nAuthor: %s\nVersion: %s\nToolchain: %s\n", p->name, p->author, fatso_version_string(&p->version), p->toolchain);
 
   printf("Dependencies:\n");
   // TODO: Use consolidated dependencies.
@@ -43,7 +43,7 @@ fatso_info(struct fatso* f, int argc, char* const* argv) {
     if (r != 0)
       goto out;
 
-    display_info_for_project(f->project);
+    display_info_for_package(&f->project->package);
   } else {
     fprintf(stderr, "NIY: Package info\n");
     r = 1;
