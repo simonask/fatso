@@ -76,21 +76,28 @@ fatso_lower_bound(const void* key, void* base, size_t nel, size_t width, int(*co
 
 void*
 fatso_lower_bound_cmp(const void* key, void* base, size_t nel, size_t width, int(*compare)(const void*, const void*), int* out_cmp) {
-  byte* p0 = base;
-  byte* p1 = p0 + (nel * width);
-  byte* p  = p0 + ((nel / 2) * width);
-  while (p1 > p0) {
-    int r = *out_cmp = compare(key, p);
+  int r = 123;
+
+  byte* p = base;
+  ssize_t i0 = 0;
+  ssize_t i1 = nel;
+  ssize_t i = nel / 2;
+  while (i0 < i1) {
+    byte* k = p + (i * width);
+    r = compare(key, k);
     if (r > 0) {
-      p0 = p + width;
+      i0 = i + 1;
+    } else if (r < 0) {
+      i1 = i;
     } else {
-      // r <= 0
-      p1 = p;
+      // element is exactly equal
+      break;
     }
-    int nrem = (p1 - p0) / width;
-    p = p0 + (nrem / 2) * width;
+    ssize_t nrem = (ssize_t)i1 - (ssize_t)i0;
+    i = i0 + (nrem / 2);
   }
-  return p;
+  *out_cmp = r;
+  return p + (i * width);
 }
 
 void*
