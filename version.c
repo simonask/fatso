@@ -47,7 +47,7 @@ void
 fatso_version_append_component(struct fatso_version* ver, const char* component, size_t n) {
   if (n == 0) return;
   char* append = strndup(component, n);
-  fatso_push_back_v(&ver->components, append);
+  fatso_push_back_v(&ver->components, &append);
 }
 
 int

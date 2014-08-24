@@ -45,14 +45,14 @@ main(int argc, char* const* argv)
         break;
       default: {
         char* append = strdup(argv[optind]);
-        fatso_push_back_v(&filtered_args, append);
+        fatso_push_back_v(&filtered_args, &append);
         break;
       }
     }
   }
   while (optind < argc) {
     char* append = strdup(argv[optind++]);
-    fatso_push_back_v(&filtered_args, append);
+    fatso_push_back_v(&filtered_args, &append);
   }
 
   argc = filtered_args.size;
