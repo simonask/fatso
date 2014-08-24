@@ -63,36 +63,85 @@ static int compare_ints(const void* a, const void* b) {
 }
 
 static void test_fatso_lower_bound() {
-  int v[] = {-1, 2, 3, 4, 4, 4, 5};
-  size_t nel = sizeof(v) / sizeof(v[0]);
+  {
+    int v[] = {-1, 2, 3, 4, 4, 4, 5};
+    size_t nel = sizeof(v) / sizeof(v[0]);
 
-  int two  = 2;
-  int four = 4;
-  int six  = 6;
+    int two  = 2;
+    int four = 4;
+    int six  = 6;
 
-  void* find_2 = fatso_lower_bound(&two, v, nel, sizeof(int), compare_ints);
-  ASSERT(find_2 == &v[1]);
+    void* find_2 = fatso_lower_bound(&two, v, nel, sizeof(int), compare_ints);
+    ASSERT(find_2 == &v[1]);
 
-  void* find_4 = fatso_lower_bound(&four, v, nel, sizeof(int), compare_ints);
-  ASSERT(find_4 == &v[3]);
+    void* find_4 = fatso_lower_bound(&four, v, nel, sizeof(int), compare_ints);
+    ASSERT(find_4 == &v[3]);
 
-  void* find_6 = fatso_lower_bound(&six, v, nel, sizeof(int), compare_ints);
-  ASSERT(find_6 == &v[nel]);
+    void* find_6 = fatso_lower_bound(&six, v, nel, sizeof(int), compare_ints);
+    ASSERT(find_6 == &v[nel]);
+  }
+
+  {
+    int v[] = {1, 2, 8, 9};
+    size_t nel = sizeof(v) / sizeof(v[0]);
+
+    int two = 2;
+    int cmp;
+    void* find_2 = fatso_lower_bound_cmp(&two, v, nel, sizeof(int), compare_ints, &cmp);
+    ASSERT(find_2 == &v[1]);
+    ASSERT_FMT(cmp == 0, "Expected %d, got %d.", 0, cmp);
+  }
 }
 
 static void
-test_fatso_insert_ordered() {
-  struct {
-    int* data;
-    size_t size;
-  } list = {0};
+test_fatso_set_insert() {
+  {
+    FATSO_ARRAY(int) list = {0};
+
+    int insert[] = {9, 1, 8, 2, 7, 3, 6, 4, 5};
+    int expect[] = {1, 2, 3, 4, 5, 6, 7, 8, 9};
+    size_t nel = sizeof(insert) / sizeof(insert[0]);
+
+    for (size_t i = 0; i < nel; ++i) {
+      fatso_set_insert_v(&list, &insert[i], compare_ints);
+      ASSERT_FMT(list.size == i + 1, "Expected %zu, got %zu.", nel + 1, list.size);
+    }
+
+    for (size_t i = 0; i < nel; ++i) {
+      ASSERT_FMT(list.data[i] == expect[i], "Expected %d, got %d (at %zu).", expect[i], list.data[i], i);
+    }
+  }
+
+  {
+    FATSO_ARRAY(int) list = {0};
+
+    int insert[] = {1, 9, 2, 8, 2, 8, 3, 4};
+    int expect[] = {1, 2, 3, 4, 8, 9};
+    size_t ninput = sizeof(insert) / sizeof(insert[0]);
+    size_t nexpect = sizeof(expect) / sizeof(expect[0]);
+
+    for (size_t i = 0; i < ninput; ++i) {
+      fatso_set_insert_v(&list, &insert[i], compare_ints);
+    }
+
+    ASSERT_FMT(list.size == nexpect, "Expected %zu, got %zu.", nexpect, list.size);
+
+    for (size_t i = 0; i < nexpect; ++i) {
+      ASSERT_FMT(list.data[i] == expect[i], "Expected %d, got %d (at %zu).", expect[i], list.data[i], i);
+    }
+  }
+}
+
+static void
+test_fatso_multiset_insert() {
+  FATSO_ARRAY(int) list = {0};
 
   int insert[] = {9, 1, 8, 2, 7, 3, 6, 4, 5};
   int expect[] = {1, 2, 3, 4, 5, 6, 7, 8, 9};
   size_t nel = sizeof(insert) / sizeof(insert[0]);
 
   for (size_t i = 0; i < nel; ++i) {
-    fatso_insert_ordered_v(&list, &insert[i], compare_ints);
+    fatso_multiset_insert_v(&list, &insert[i], compare_ints);
     ASSERT_FMT(list.size == i + 1, "Expected %zu, got %zu.", nel + 1, list.size);
   }
 
@@ -106,6 +155,7 @@ int main(int argc, char const *argv[])
   TEST(test_fatso_version_from_string);
   TEST(test_fatso_version_compare);
   TEST(test_fatso_lower_bound);
-  TEST(test_fatso_insert_ordered);
+  TEST(test_fatso_set_insert);
+  TEST(test_fatso_multiset_insert);
   return g_any_test_failed;
 }

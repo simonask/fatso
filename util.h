@@ -47,10 +47,16 @@ fatso_push_back_(void** inout_data, size_t* inout_num_elements, const void* new_
   fatso_push_back(&((array)->data), &((array)->size), (new_element), sizeof(*new_element))
 
 void*
-fatso_insert_ordered(void** inout_data, size_t* inout_num_elements, const void* new_element, size_t width, int(*compare)(const void*, const void*));
+fatso_multiset_insert(void** inout_data, size_t* inout_num_elements, const void* new_element, size_t width, int(*compare)(const void*, const void*));
 
-#define fatso_insert_ordered_v(array, new_element, compare) \
-  fatso_insert_ordered((void**)&((array)->data), &((array)->size), (new_element), sizeof(*new_element), compare)
+#define fatso_multiset_insert_v(array, new_element, compare) \
+  fatso_multiset_insert((void**)&((array)->data), &((array)->size), (new_element), sizeof(*new_element), compare)
+
+void*
+fatso_set_insert(void** inout_data, size_t* inout_num_elements, const void* new_element, size_t width, int(*compare)(const void*, const void*));
+
+#define fatso_set_insert_v(array, new_element, compare) \
+  fatso_set_insert((void**)&((array)->data), &((array)->size), (new_element), sizeof(*new_element), compare)
 
 #ifdef __cplusplus
 }

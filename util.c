@@ -101,7 +101,7 @@ fatso_lower_bound_cmp(const void* key, void* base, size_t nel, size_t width, int
 }
 
 void*
-fatso_insert_ordered(void** inout_data, size_t* inout_num_elements, const void* new_element, size_t width, int(*compare)(const void*, const void*)) {
+fatso_multiset_insert(void** inout_data, size_t* inout_num_elements, const void* new_element, size_t width, int(*compare)(const void*, const void*)) {
   size_t old_size = *inout_num_elements;
   size_t new_size = old_size + 1;
   byte* new_data = fatso_reallocf(*inout_data, new_size * width);
@@ -111,10 +111,38 @@ fatso_insert_ordered(void** inout_data, size_t* inout_num_elements, const void* 
 
   // Shift old data right:
   byte* old_data_end = new_data + (old_size * width);
-  size_t to_move = (old_data_end - ptr);
+  size_t to_move = old_data_end - ptr;
   memmove(ptr + width, ptr, to_move);
 
   // Insert new element
   memcpy(ptr, new_element, width);
+  return ptr;
+}
+
+void*
+fatso_set_insert(void** inout_data, size_t* inout_num_elements, const void* new_element, size_t width, int(*compare)(const void*, const void*)) {
+  byte* old_data = *inout_data;
+  size_t old_size = *inout_num_elements;
+  int cmp;
+  byte* ptr = fatso_lower_bound_cmp(new_element, old_data, old_size, width, compare, &cmp);
+  if (cmp != 0) {
+    // Expand array:
+    size_t new_size = old_size + 1;
+    byte* new_data = fatso_reallocf(old_data, new_size * width);
+    *inout_data = new_data;
+    *inout_num_elements = new_size;
+
+    // Translate ptr to new base:
+    size_t found_offset = ptr - old_data;
+    ptr = new_data + found_offset;
+
+    // Shift old data right:
+    byte* new_data_end = new_data + (old_size * width);
+    size_t to_move = new_data_end - ptr;
+    memmove(ptr + width, ptr, to_move);
+
+    // Insert new element:
+    memcpy(ptr, new_element, width);
+  }
   return ptr;
 }
