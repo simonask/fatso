@@ -76,7 +76,7 @@ fatso_lower_bound(const void* key, void* base, size_t nel, size_t width, int(*co
 
 void*
 fatso_lower_bound_cmp(const void* key, void* base, size_t nel, size_t width, int(*compare)(const void*, const void*), int* out_cmp) {
-  int r = 123;
+  int r = 1; // This becomes the result when there are no elements in the input.
 
   byte* p = base;
   ssize_t i0 = 0;
