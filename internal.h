@@ -3,6 +3,7 @@
 #define FATSO_INTERNAL_H_INCLUDED
 
 #include <stddef.h> // size_t
+#include "util.h"
 
 #ifdef __cplusplus
 extern "C" {
@@ -15,11 +16,7 @@ void fatso_free(void* ptr);
 
 struct fatso_version {
   char* string;
-
-  struct {
-    char** data;
-    size_t size;
-  } components;
+  FATSO_ARRAY(char*) components;
 };
 
 void fatso_version_init(struct fatso_version*);
@@ -54,8 +51,7 @@ void fatso_constraint_destroy(struct fatso_constraint*);
 
 struct fatso_dependency {
   char* name;
-  size_t num_constraints;
-  struct fatso_constraint* constraints;
+  FATSO_ARRAY(struct fatso_constraint) constraints;
 };
 
 void fatso_dependency_init(struct fatso_dependency*, const char* name, const struct fatso_constraint* constraints, size_t num_constraints);
@@ -71,10 +67,8 @@ void fatso_define_destroy(struct fatso_define*);
 
 struct fatso_environment {
   char* name;
-  struct fatso_dependency* dependencies;
-  size_t num_dependencies;
-  struct fatso_define* defines;
-  size_t num_defines;
+  FATSO_ARRAY(struct fatso_dependency) dependencies;
+  FATSO_ARRAY(struct fatso_define) defines;
 };
 
 void fatso_environment_init(struct fatso_environment*);
@@ -88,8 +82,7 @@ struct fatso_project {
   char* toolchain; // TODO: Autodetect
 
   struct fatso_environment base_environment;
-  struct fatso_environment* environments;
-  size_t num_environments;
+  FATSO_ARRAY(struct fatso_environment) environments;
 };
 
 void fatso_project_init(struct fatso_project*);

@@ -38,6 +38,8 @@ fatso_bsearch(const void* key, void* base, size_t nel, size_t width, int(*compar
 void*
 fatso_push_back_(void** inout_data, size_t* inout_num_elements, const void* new_element, size_t element_size);
 
+#define FATSO_ARRAY(TYPE) struct { TYPE* data; size_t size; }
+
 #define fatso_push_back(data, size, new_element, element_size) \
   fatso_push_back_((void**)(data), size, new_element, element_size)
 

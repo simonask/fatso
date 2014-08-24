@@ -11,22 +11,22 @@ fatso_dependency_init(
   size_t num_constraints)
 {
   dep->name = strdup(name);
-  dep->num_constraints = num_constraints;
-  dep->constraints = fatso_calloc(num_constraints, sizeof(struct fatso_constraint));
+  dep->constraints.size = num_constraints;
+  dep->constraints.data = fatso_calloc(num_constraints, sizeof(struct fatso_constraint));
   for (size_t i = 0; i < num_constraints; ++i) {
-    fatso_version_init(&dep->constraints[i].version);
-    fatso_version_copy(&dep->constraints[i].version, &constraints[i].version);
-    dep->constraints[i].version_requirement = constraints[i].version_requirement;
+    fatso_version_init(&dep->constraints.data[i].version);
+    fatso_version_copy(&dep->constraints.data[i].version, &constraints[i].version);
+    dep->constraints.data[i].version_requirement = constraints[i].version_requirement;
   }
 }
 
 void
 fatso_dependency_destroy(struct fatso_dependency* dep) {
   fatso_free(dep->name);
-  for (size_t i = 0; i < dep->num_constraints; ++i) {
-    fatso_constraint_destroy(&dep->constraints[i]);
+  for (size_t i = 0; i < dep->constraints.size; ++i) {
+    fatso_constraint_destroy(&dep->constraints.data[i]);
   }
-  fatso_free(dep->constraints);
+  fatso_free(dep->constraints.data);
   dep->name = NULL;
-  dep->constraints = NULL;
+  dep->constraints.data = NULL;
 }

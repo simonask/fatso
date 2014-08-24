@@ -20,10 +20,10 @@ fatso_project_destroy(struct fatso_project* p) {
   fatso_free(p->author);
   fatso_free(p->toolchain);
   fatso_environment_destroy(&p->base_environment);
-  for (size_t i = 0; i < p->num_environments; ++i) {
-    fatso_environment_destroy(&p->environments[i]);
+  for (size_t i = 0; i < p->environments.size; ++i) {
+    fatso_environment_destroy(&p->environments.data[i]);
   }
-  fatso_free(p->environments);
+  fatso_free(p->environments.data);
   memset(p, 0, sizeof(*p));
 }
 
@@ -103,10 +103,10 @@ parse_fatso_environment(struct fatso_environment* e, yaml_document_t* doc, yaml_
   if (dependencies && dependencies->type == YAML_SEQUENCE_NODE) {
     size_t len = fatso_yaml_sequence_length(dependencies);
     if (len != 0) {
-      e->num_dependencies = len;
-      e->dependencies = fatso_calloc(len, sizeof(struct fatso_dependency));
+      e->dependencies.size = len;
+      e->dependencies.data = fatso_calloc(len, sizeof(struct fatso_dependency));
       for (size_t i = 0; i < len; ++i) {
-        r = parse_fatso_dependency(&e->dependencies[i], doc, fatso_yaml_sequence_lookup(doc, dependencies, i), out_error_message);
+        r = parse_fatso_dependency(&e->dependencies.data[i], doc, fatso_yaml_sequence_lookup(doc, dependencies, i), out_error_message);
         if (r != 0)
           goto out;
       }
@@ -117,14 +117,14 @@ parse_fatso_environment(struct fatso_environment* e, yaml_document_t* doc, yaml_
   if (defines && defines->type == YAML_MAPPING_NODE) {
     size_t len = fatso_yaml_mapping_length(defines);
     if (len != 0) {
-      e->num_defines = len;
-      e->defines = fatso_calloc(len, sizeof(struct fatso_define));
+      e->defines.size = len;
+      e->defines.data = fatso_calloc(len, sizeof(struct fatso_define));
       for (size_t i = 0; i < len; ++i) {
         yaml_node_pair_t* pair = &defines->data.mapping.pairs.start[i];
         yaml_node_t* key = yaml_document_get_node(doc, pair->key);
         yaml_node_t* value = yaml_document_get_node(doc, pair->value);
-        e->defines[i].key = fatso_yaml_scalar_strdup(key);
-        e->defines[i].value = fatso_yaml_scalar_strdup(value);
+        e->defines.data[i].key = fatso_yaml_scalar_strdup(key);
+        e->defines.data[i].value = fatso_yaml_scalar_strdup(value);
       }
     }
   }
@@ -171,10 +171,10 @@ parse_fatso_project(struct fatso_project* p, yaml_document_t* doc, char** out_er
   yaml_node_t* environments_node = fatso_yaml_mapping_lookup(doc, root, "environments");
   if (environments_node && environments_node->type == YAML_SEQUENCE_NODE) {
     size_t len = fatso_yaml_sequence_length(environments_node);
-    p->num_environments = len;
-    p->environments = fatso_calloc(len, sizeof(struct fatso_environment));
+    p->environments.size = len;
+    p->environments.data = fatso_calloc(len, sizeof(struct fatso_environment));
     for (size_t i = 0; i < len; ++i) {
-      r = parse_fatso_environment(&p->environments[i], doc, fatso_yaml_sequence_lookup(doc, environments_node, i), out_error_message);
+      r = parse_fatso_environment(&p->environments.data[i], doc, fatso_yaml_sequence_lookup(doc, environments_node, i), out_error_message);
       if (r != 0)
         goto out;
     }
@@ -269,5 +269,25 @@ fatso_load_dependency_graph(struct fatso* f) {
 
 int fatso_generate_dependency_graph(struct fatso* f) {
   fprintf(stderr, "%s: NIY\n", __func__);
+
+  // struct fatso_dependency_graph* candidate = fatso_dependency_graph_new();
+  // for (size_t i = 0; i < f->project->dependencies.size; ++i) {
+
+  // }
+  // int r = fatso_dependency_graph_resolve(candidate);
+  // fatso_dependency_graph_destroy(candidate);
+
+  // Add dependencies with constraints to open set.
+  // For each dependency:
+  //    For each version, starting with newest viable:
+  //        Create new open set as a duplicate of the open set
+  //        For each dependency:
+  //            If the dependency is already in the open set:
+  //                If the constraint overlaps:
+  //                    Merge the constraints
+  //                Else:
+  //                    Not viable.
+  //            Else:
+  //                Add to the open set, recurse.
   return -1;
 }

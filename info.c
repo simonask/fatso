@@ -9,16 +9,16 @@ display_info_for_project(const struct fatso_project* p) {
 
   printf("Dependencies:\n");
   // TODO: Use consolidated dependencies.
-  for (size_t i = 0; i < p->base_environment.num_dependencies; ++i) {
-    const struct fatso_dependency* dep = &p->base_environment.dependencies[i];
+  for (size_t i = 0; i < p->base_environment.dependencies.size; ++i) {
+    const struct fatso_dependency* dep = &p->base_environment.dependencies.data[i];
     printf("  %s", dep->name);
-    if (dep->num_constraints) {
+    if (dep->constraints.size) {
       printf(" (");
-      for (size_t i = 0; i < dep->num_constraints; ++i) {
-        const struct fatso_constraint* c = &dep->constraints[i];
+      for (size_t i = 0; i < dep->constraints.size; ++i) {
+        const struct fatso_constraint* c = &dep->constraints.data[i];
         const char* vs = fatso_version_string(&c->version);
         printf("%s%s%s", fatso_version_requirement_to_string(c->version_requirement), vs ? " " : "", vs ? vs : "");
-        if (i + 1 != dep->num_constraints) {
+        if (i + 1 != dep->constraints.size) {
           printf(", ");
         }
       }
@@ -29,8 +29,8 @@ display_info_for_project(const struct fatso_project* p) {
 
   printf("Defines:\n");
   // TODO: Use consolidated defines.
-  for (size_t i = 0; i < p->base_environment.num_defines; ++i) {
-    const struct fatso_define* def = &p->base_environment.defines[i];
+  for (size_t i = 0; i < p->base_environment.defines.size; ++i) {
+    const struct fatso_define* def = &p->base_environment.defines.data[i];
     printf("  %s: %s\n", def->key, def->value);
   }
 }
