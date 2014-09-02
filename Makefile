@@ -3,7 +3,8 @@ all: fatso
 CFLAGS := $(CFLAGS) -O0 -g -Wall -pedantic -Werror -Wno-gnu-zero-variadic-macro-arguments
 
 HEADERS := fatso.h util.h internal.h
-OBJECTS := fatso.o help.o util.o project.o install.o yaml.o version.o dependency.o define.o environment.o info.o memory.o package.o
+SOURCES := fatso.c help.c util.c project.c install.c yaml.c version.c dependency.c define.c environment.c info.c memory.c package.c
+OBJECTS := $(patsubst %.c,%.o,$(SOURCES))
 
 %.o: %.c $(HEADERS)
 	$(CC) $(CFLAGS) -c -o $@ $<
@@ -26,4 +27,7 @@ clean:
 	rm -f *.o
 	rm -f test/*.o test/test
 
-.PHONY: clean all test
+analyze: $(SOURCES) $(HEADERS)
+	$(CC) --analyze $(CFLAGS) $(SOURCES)
+
+.PHONY: clean all test analyze
