@@ -35,6 +35,9 @@ fatso_lower_bound_cmp(const void* key, void* base, size_t nel, size_t width, int
 void*
 fatso_bsearch(const void* key, void* base, size_t nel, size_t width, int(*compare)(const void*, const void*));
 
+#define fatso_bsearch_v(key, array, compare) \
+  fatso_bsearch(key, (array)->data, (array)->size, sizeof(*((array)->data)), compare)
+
 void*
 fatso_push_back_(void** inout_data, size_t* inout_num_elements, const void* new_element, size_t element_size);
 
