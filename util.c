@@ -101,6 +101,17 @@ fatso_lower_bound_cmp(const void* key, void* base, size_t nel, size_t width, int
 }
 
 void*
+fatso_bsearch(const void* key, void* base, size_t nel, size_t width, int(*compare)(const void*, const void*)) {
+  int cmp;
+  void* p = fatso_lower_bound_cmp(key, base, nel, width, compare, &cmp);
+  if (cmp == 0) {
+    return p;
+  } else {
+    return NULL;
+  }
+}
+
+void*
 fatso_multiset_insert(void** inout_data, size_t* inout_num_elements, const void* new_element, size_t width, int(*compare)(const void*, const void*)) {
   size_t old_size = *inout_num_elements;
   size_t new_size = old_size + 1;

@@ -8,8 +8,10 @@ fatso_yaml_mapping_lookup(yaml_document_t* doc, yaml_node_t* mapping, const char
   assert(mapping->type == YAML_MAPPING_NODE);
   for (yaml_node_pair_t* x = mapping->data.mapping.pairs.start; x != mapping->data.mapping.pairs.end; ++x) {
     yaml_node_t* k = yaml_document_get_node(doc, x->key);
-    if (strncmp(key, (char*)k->data.scalar.value, k->data.scalar.length) == 0) {
-      return yaml_document_get_node(doc, x->value);
+    if (k) {
+      if (strncmp(key, (char*)k->data.scalar.value, k->data.scalar.length) == 0) {
+        return yaml_document_get_node(doc, x->value);
+      }
     }
   }
   return NULL;
@@ -33,8 +35,11 @@ fatso_yaml_traverse(yaml_document_t* doc, yaml_node_t* node, const char *keys[],
 
 char*
 fatso_yaml_scalar_strdup(yaml_node_t* node) {
-  assert(node->type == YAML_SCALAR_NODE);
-  return strndup((char*)node->data.scalar.value, node->data.scalar.length);
+  if (node) {
+    assert(node->type == YAML_SCALAR_NODE);
+    return strndup((char*)node->data.scalar.value, node->data.scalar.length);
+  }
+  return strdup("");
 }
 
 size_t

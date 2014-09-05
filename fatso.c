@@ -18,29 +18,10 @@ fatso_update(struct fatso* f, int argc, char* const* argv) {
 
 int
 fatso_init(struct fatso* f, const char* program_name) {
-  int r;
-
   f->program_name = program_name;
   f->project = NULL;
   f->command = NULL;
-
-  const char* homedir = fatso_get_homedir();
-  size_t homedir_len = strlen(homedir);
-  f->global_dir = fatso_alloc(homedir_len + 50);
-  strncpy(f->global_dir, homedir, homedir_len);
-  strncat(f->global_dir, "/.fatso", 7);
-
-  if (!fatso_directory_exists(f->global_dir)) {
-    r = mkdir(f->global_dir, 0755);
-    if (r != 0) {
-      fprintf(stderr, "Fatso homedir (%s) does not exist, and could not be created.\n", f->global_dir);
-      perror("mkdir");
-      exit(1);
-    }
-  }
-
-  f->working_dir = getwd(NULL);
-
+  f->global_dir = NULL;
   return 0;
 }
 
@@ -49,9 +30,39 @@ void fatso_set_home_directory(struct fatso* f, const char* path) {
   f->global_dir = strdup(path);
 }
 
+const char*
+fatso_home_directory(struct fatso* f) {
+  if (!f->global_dir) {
+    const char* homedir = fatso_get_homedir();
+    size_t homedir_len = strlen(homedir);
+    f->global_dir = fatso_alloc(homedir_len + 50);
+    strncpy(f->global_dir, homedir, homedir_len);
+    strncat(f->global_dir, "/.fatso", 7);
+  }
+
+  if (!fatso_directory_exists(f->global_dir)) {
+    int r = mkdir(f->global_dir, 0755);
+    if (r != 0) {
+      fprintf(stderr, "Fatso homedir (%s) does not exist, and could not be created.\n", f->global_dir);
+      perror("mkdir");
+      exit(1);
+    }
+  }
+
+  return f->global_dir;
+}
+
 void fatso_set_working_directory(struct fatso* f, const char* path) {
   free(f->working_dir);
   f->working_dir = strdup(path);
+}
+
+const char*
+fatso_working_directory(struct fatso* f) {
+  if (!f->working_dir) {
+    f->working_dir = getwd(NULL);
+  }
+  return f->working_dir;
 }
 
 void
@@ -103,4 +114,3 @@ out:
   fatso_free(cmd);
   return r;
 }
-

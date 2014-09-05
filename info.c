@@ -37,7 +37,7 @@ display_info_for_package(const struct fatso_package* p) {
 
 int
 fatso_info(struct fatso* f, int argc, char* const* argv) {
-  int r;
+  int r = 0;
   if (argc == 1) {
     r = fatso_load_project(f);
     if (r != 0)
@@ -45,8 +45,26 @@ fatso_info(struct fatso* f, int argc, char* const* argv) {
 
     display_info_for_package(&f->project->package);
   } else {
-    fprintf(stderr, "NIY: Package info\n");
-    r = 1;
+    enum fatso_repository_result res;
+    struct fatso_package* package;
+    res = fatso_repository_find_package(f, argv[1], NULL, &package);
+    switch (res) {
+      case FATSO_PACKAGE_OK: {
+        display_info_for_package(package);
+        r = 0;
+        break;
+      }
+      case FATSO_PACKAGE_UNKNOWN: {
+        fprintf(stderr, "Unknown package: %s\n", argv[1]);
+        r = 1;
+        break;
+      }
+      case FATSO_PACKAGE_NO_MATCHING_VERSION: {
+        fprintf(stderr, "Package found, but no versions found: %s\n", argv[1]);
+        r = 1;
+        break;
+      }
+    }
   }
 
 out:
