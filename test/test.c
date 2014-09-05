@@ -45,6 +45,7 @@ static void test_fatso_version_compare() {
     {"0.1",  "0.2", -1},
     {"0.10", "0.1", 1},
     {"1.a.0", "1.aa.0", -1},
+    {"1.2", "2", -1},
     {NULL, NULL, 0}
   };
 
@@ -150,6 +151,43 @@ test_fatso_multiset_insert() {
   }
 }
 
+static void
+test_fatso_version_matches_constraint() {
+  struct version_match_test_case {
+    const char* constraint;
+    bool match_expectation;
+  };
+
+  {
+    struct fatso_version ver;
+    fatso_version_from_string(&ver, "1.2.3");
+
+    static const struct version_match_test_case cases[] = {
+      {"= 1.2.3", true},
+      {"> 1.2.2", true},
+      {"> 1.2", true},
+      {"> 1", true},
+      {"> 2", false},
+      {">= 1.2.3", true},
+      {">= 1.2.2", true},
+      {">= 2", false},
+      {"< 2", true},
+      {"< 1", false},
+      {"~> 1.2.4", true},
+      {"~> 1.2", true},
+      {"~> 2.3", false},
+      {"~> 2", true},
+      {NULL, 0}
+    };
+
+    for (const struct version_match_test_case* p = cases; p->constraint; ++p) {
+      struct fatso_constraint c;
+      fatso_constraint_from_string(&c, p->constraint);
+      ASSERT_FMT(fatso_version_matches_constraints(&ver, &c, 1) == p->match_expectation, "Expected '%s' %s match constraint '%s'.", fatso_version_string(&ver), p->match_expectation ? "to" : "to not", p->constraint);
+    }
+  }
+}
+
 int main(int argc, char const *argv[])
 {
   TEST(test_fatso_version_from_string);
@@ -157,5 +195,6 @@ int main(int argc, char const *argv[])
   TEST(test_fatso_lower_bound);
   TEST(test_fatso_set_insert);
   TEST(test_fatso_multiset_insert);
+  TEST(test_fatso_version_matches_constraint);
   return g_any_test_failed;
 }

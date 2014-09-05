@@ -161,6 +161,50 @@ fatso_version_string(const struct fatso_version* ver) {
   return ver->string;
 }
 
+bool
+fatso_version_matches_constraints(const struct fatso_version* version, const struct fatso_constraint* constraints, size_t num_constraints) {
+  for (size_t i = 0; i < num_constraints; ++i) {
+    const struct fatso_constraint* c = &constraints[i];
+    int cmp = fatso_version_compare(version, &c->version);
+    switch (c->version_requirement) {
+      case FATSO_VERSION_ANY: {
+        return true;
+      }
+      case FATSO_VERSION_LT: {
+        if (!(cmp < 0)) return false;
+        break;
+      }
+      case FATSO_VERSION_LE: {
+        if (!(cmp <= 0)) return false;
+        break;
+      }
+      case FATSO_VERSION_EQ: {
+        if (!(cmp == 0)) return false;
+        break;
+      }
+      case FATSO_VERSION_GT: {
+        if (!(cmp > 0)) return false;
+        break;
+      }
+      case FATSO_VERSION_GE: {
+        if (!(cmp >= 0)) return false;
+        break;
+      }
+      case FATSO_VERSION_APPROXIMATELY: {
+        size_t n = c->version.components.size;
+        if (n) {
+          cmp = fatso_version_compare_n_components(version, &c->version, n - 1);
+          if (cmp != 0) {
+            return false;
+          }
+        }
+        break;
+      }
+    }
+  }
+  return true;
+}
+
 void
 fatso_constraint_destroy(struct fatso_constraint* c) {
   fatso_version_destroy(&c->version);
