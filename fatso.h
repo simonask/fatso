@@ -23,6 +23,8 @@ int fatso_init(struct fatso*, const char* program_name);
 void fatso_destroy(struct fatso*);
 void fatso_set_home_directory(struct fatso*, const char*);
 void fatso_set_working_directory(struct fatso*, const char*);
+const char* fatso_home_directory(struct fatso*);
+const char* fatso_working_directory(struct fatso*);
 
 // Repository functions:
 int fatso_update_packages(struct fatso*);
