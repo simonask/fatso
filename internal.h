@@ -3,16 +3,29 @@
 #define FATSO_INTERNAL_H_INCLUDED
 
 #include <stddef.h> // size_t
+#include <stdio.h> // FILE*
 #include "util.h"
 
 #ifdef __cplusplus
 extern "C" {
 #endif
 
+struct fatso;
+
 void* fatso_alloc(size_t size);
 void* fatso_calloc(size_t count, size_t size);
 void* fatso_reallocf(void* ptr, size_t new_size);
 void fatso_free(void* ptr);
+
+struct yaml_node_s;
+struct yaml_document_s;
+struct yaml_parser_s;
+struct yaml_node_s* fatso_yaml_mapping_lookup(struct yaml_document_s*, struct yaml_node_s*, const char* key);
+struct yaml_node_s* fatso_yaml_sequence_lookup(struct yaml_document_s*, struct yaml_node_s*, size_t idx);
+struct yaml_node_s* fatso_yaml_traverse(struct yaml_document_s*, struct yaml_node_s*, const char* keys[], size_t num_keys);
+char* fatso_yaml_scalar_strdup(struct yaml_node_s*);
+size_t fatso_yaml_sequence_length(struct yaml_node_s*);
+size_t fatso_yaml_mapping_length(struct yaml_node_s*);
 
 struct fatso_version {
   char* string;
@@ -27,6 +40,7 @@ void fatso_version_append_component(struct fatso_version*, const char* component
 int fatso_version_from_string(struct fatso_version*, const char*);
 int fatso_version_compare(const struct fatso_version* a, const struct fatso_version* b);
 int fatso_version_compare_t(void* thunk, const void* a, const void* b);
+int fatso_version_compare_r(const void* a, const void* b);
 const char* fatso_version_string(const struct fatso_version*);
 
 enum fatso_version_requirement {
@@ -48,6 +62,7 @@ struct fatso_constraint {
 
 int fatso_constraint_from_string(struct fatso_constraint*, const char*);
 void fatso_constraint_destroy(struct fatso_constraint*);
+bool fatso_version_matches_constraints(const struct fatso_version*, const struct fatso_constraint* constraints, size_t num_constraints);
 
 struct fatso_dependency {
   char* name;
@@ -56,6 +71,7 @@ struct fatso_dependency {
 
 void fatso_dependency_init(struct fatso_dependency*, const char* name, const struct fatso_constraint* constraints, size_t num_constraints);
 void fatso_dependency_destroy(struct fatso_dependency*);
+int fatso_dependency_parse(struct fatso_dependency*, struct yaml_document_s*, struct yaml_node_s*, char** out_error_message);
 
 struct fatso_define {
   char* key;
@@ -73,6 +89,7 @@ struct fatso_environment {
 
 void fatso_environment_init(struct fatso_environment*);
 void fatso_environment_destroy(struct fatso_environment*);
+int fatso_environment_parse(struct fatso_environment* env, struct yaml_document_s*, struct yaml_node_s*, char** out_error_message);
 
 struct fatso_package {
   char* name;
@@ -85,6 +102,9 @@ struct fatso_package {
 
 void fatso_package_init(struct fatso_package*);
 void fatso_package_destroy(struct fatso_package*);
+int fatso_package_parse(struct fatso_package*, struct yaml_document_s*, struct yaml_node_s*, char** out_error_message);
+int fatso_package_parse_from_file(struct fatso_package*, FILE* fp, char** out_error_message);
+int fatso_package_parse_from_string(struct fatso_package*, const char* buffer, char** out_error_message);
 
 struct fatso_project {
   char* path;
@@ -109,16 +129,6 @@ void fatso_dependency_graph_add_package(struct fatso_dependency_graph*, struct f
 void fatso_dependency_graph_add_dependency(struct fatso_dependency_graph*, struct fatso_dependency*);
 enum fatso_dependency_graph_resolution_status fatso_dependency_graph_resolve(struct fatso_dependency_graph*);
 void fatso_dependency_graph_topological_sort(struct fatso_dependency_graph*, struct fatso_package***, size_t*);
-
-struct yaml_node_s;
-struct yaml_document_s;
-struct yaml_parser_s;
-struct yaml_node_s* fatso_yaml_mapping_lookup(struct yaml_document_s*, struct yaml_node_s*, const char* key);
-struct yaml_node_s* fatso_yaml_sequence_lookup(struct yaml_document_s*, struct yaml_node_s*, size_t idx);
-struct yaml_node_s* fatso_yaml_traverse(struct yaml_document_s*, struct yaml_node_s*, const char* keys[], size_t num_keys);
-char* fatso_yaml_scalar_strdup(struct yaml_node_s*);
-size_t fatso_yaml_sequence_length(struct yaml_node_s*);
-size_t fatso_yaml_mapping_length(struct yaml_node_s*);
 
 #ifdef __cplusplus
 }
