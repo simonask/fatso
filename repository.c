@@ -119,20 +119,22 @@ fatso_repository_find_package_matching_dependency(struct fatso* f, struct fatso_
   struct fatso_package* packages = NULL;
   ssize_t num_versions = fatso_repository_find_package_versions(f, dep->name, &packages);
   if (num_versions >= 0) {
-    struct fatso_package* p = &packages[num_versions];
+    if (num_versions > 0) {
+      struct fatso_package* p = &packages[num_versions - 1];
 
-    if (less_than_version) {
-      while (p >= packages && fatso_version_compare(&p->version, less_than_version) >= 0) {
+      if (less_than_version) {
+        while (p >= packages && fatso_version_compare(&p->version, less_than_version) >= 0) {
+          --p;
+        }
+      }
+
+      while (p >= packages) {
+        if (fatso_version_matches_constraints(&p->version, dep->constraints.data, dep->constraints.size)) {
+          *out_package = p;
+          return FATSO_PACKAGE_OK;
+        }
         --p;
       }
-    }
-
-    while (p >= packages) {
-      if (fatso_version_matches_constraints(&p->version, dep->constraints.data, dep->constraints.size)) {
-        *out_package = p;
-        return FATSO_PACKAGE_OK;
-      }
-      --p;
     }
 
     return FATSO_PACKAGE_NO_MATCHING_VERSION;
