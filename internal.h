@@ -106,6 +106,18 @@ int fatso_package_parse(struct fatso_package*, struct yaml_document_s*, struct y
 int fatso_package_parse_from_file(struct fatso_package*, FILE* fp, char** out_error_message);
 int fatso_package_parse_from_string(struct fatso_package*, const char* buffer, char** out_error_message);
 
+enum fatso_repository_result {
+  FATSO_PACKAGE_OK,
+  FATSO_PACKAGE_UNKNOWN,
+  FATSO_PACKAGE_NO_MATCHING_VERSION,
+};
+
+enum fatso_repository_result
+fatso_repository_find_package_matching_dependency(struct fatso* f, struct fatso_dependency* dep, struct fatso_version* less_than_version, struct fatso_package** out_package);
+
+enum fatso_repository_result
+fatso_repository_find_package(struct fatso* f, const char* name, struct fatso_version* less_than_version, struct fatso_package** out_package);
+
 struct fatso_project {
   char* path;
   struct fatso_package package;
