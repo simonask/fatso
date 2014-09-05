@@ -28,6 +28,6 @@ clean:
 	rm -f test/*.o test/test
 
 analyze: $(SOURCES) $(HEADERS)
-	$(CC) --analyze $(CFLAGS) $(SOURCES)
+	$(CC) --analyze $(CFLAGS) -Xanalyzer -analyzer-output=text $(SOURCES)
 
 .PHONY: clean all test analyze
