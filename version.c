@@ -102,8 +102,12 @@ fatso_version_from_string(struct fatso_version* ver, const char* str) {
 }
 
 int
-fatso_version_compare(const struct fatso_version* a, const struct fatso_version* b) {
-  size_t n = a->components.size < b->components.size ? a->components.size : b->components.size;
+fatso_version_compare_n_components(const struct fatso_version* a, const struct fatso_version* b, size_t n) {
+  if (a->components.size < n)
+    n = a->components.size;
+  if (b->components.size < n)
+    n = b->components.size;
+
   int r;
 
   for (size_t i = 0; i < n; ++i) {
@@ -131,9 +135,20 @@ fatso_version_compare(const struct fatso_version* a, const struct fatso_version*
     }
   }
 
-  // Everything else was equal, so compare the number of components, where the
-  // shortest comes first:
-  return ((int)a->components.size - (int)b->components.size);
+  // Everything was equal so far:
+  return 0;
+}
+
+int
+fatso_version_compare(const struct fatso_version* a, const struct fatso_version* b) {
+  size_t n = a->components.size < b->components.size ? a->components.size : b->components.size;
+  int r = fatso_version_compare_n_components(a, b, n);
+  if (r == 0) {
+    // Everything else was equal, so compare the number of components, where the
+    // shortest comes first:
+    return ((int)a->components.size - (int)b->components.size);
+  }
+  return r;
 }
 
 int
