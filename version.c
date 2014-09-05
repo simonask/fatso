@@ -62,7 +62,7 @@ fatso_version_from_string(struct fatso_version* ver, const char* str) {
   const char* component_start = str;
   const char* p = str;
 
-  for (const char* p = str; *p; ++p) {
+  for (; *p; ++p) {
     int c = *p;
     if (c >= '0' && c <= '9') {
       switch (state) {
