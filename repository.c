@@ -94,6 +94,7 @@ fatso_repository_find_package_versions(struct fatso* f, const char* name, struct
         }
       }
     }
+    globfree(&g);
 
     // Sort packages by version:
     qsort(packages, valid_i, sizeof(struct fatso_package), compare_packages_by_version);
@@ -106,7 +107,6 @@ error:
 out:
     free(package_dir);
     free(pattern);
-    globfree(&g);
     if (r < 0) return r;
   }
 

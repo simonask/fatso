@@ -113,7 +113,7 @@ struct fatso_dependency_graph {
 
   // Owned pointers, that must be freed iteratively:
   FATSO_ARRAY(struct fatso_dependency) own_dependencies; // sorted by name
-  FATSO_ARRAY(struct fatso_reverse_dependency_list) depended_on_by; // sorted by name
+  FATSO_ARRAY(struct fatso_reverse_dependency_list) depended_on_by; // sorted by dep index
 };
 
 static void
@@ -386,7 +386,7 @@ fatso_dependency_graph_resolve(
           debugdep("UNKNOWN PACKAGE: %s", dep->name);
           fatso_dependency_graph_add_unknown(graph, dep_idx);
           *out_status = FATSO_DEPENDENCY_GRAPH_UNKNOWN;
-          return candidate;
+          return graph;
         }
         case FATSO_PACKAGE_NO_MATCHING_VERSION: {
           debugdep("NO MORE MATCHING VERSIONS!");
@@ -423,6 +423,8 @@ fatso_dependency_graph_resolve(
 
             if (*out_status == FATSO_DEPENDENCY_GRAPH_SUCCESS) {
               debugdep("Graph %p succeeded!", candidate);
+              return candidate;
+            } else if (*out_status == FATSO_DEPENDENCY_GRAPH_UNKNOWN) {
               return candidate;
             }
             debugdep("Graph %p was unsuccessful! :(", candidate);
@@ -514,4 +516,49 @@ fatso_dependency_graph_topological_sort(struct fatso_dependency_graph* graph, st
 
   *out_list = list.data;
   *out_size = list.size;
+}
+
+void
+fatso_dependency_graph_get_conflicts(
+  struct fatso_dependency_graph* graph,
+  fatso_conflicts_t* out_conflicts
+) {
+  for (size_t i = 0; i < graph->conflicts.size; ++i) {
+    unsigned int dep_idx = graph->conflicts.data[i];
+    struct fatso_dependency* own_dep = &graph->own_dependencies.data[dep_idx];
+    struct fatso_reverse_dependency_list* plist = fatso_bsearch_v(&dep_idx, &graph->depended_on_by, compare_reverse_dependency_lists_by_dependency_index);
+
+    for (size_t j = 0; j < plist->packages.size; ++j) {
+      struct fatso_package* package = plist->packages.data[j];
+      struct fatso_dependency* dep = NULL;
+
+      // Find the dependency actually requested by the package.
+      for (size_t u = 0; u < package->base_environment.dependencies.size; ++u) {
+        if (strcmp(own_dep->name, package->base_environment.dependencies.data[u].name) == 0) {
+          dep = &package->base_environment.dependencies.data[u];
+          break;
+        }
+      }
+
+      if (dep == NULL) continue; // TODO: This should go away once we're search auxillary environments.
+
+      struct fatso_dependency_package_pair pair = {
+        .package = plist->packages.data[j],
+        .dependency = dep
+      };
+      fatso_push_back_v(out_conflicts, &pair);
+    }
+  }
+}
+
+void
+fatso_dependency_graph_get_unknown_dependencies(
+  struct fatso_dependency_graph* graph,
+  fatso_unknown_dependencies_t* out_deps
+) {
+  for (size_t i = 0; i < graph->unknown.size; ++i) {
+    unsigned int dep_idx = graph->unknown.data[i];
+    struct fatso_dependency* dep = &graph->own_dependencies.data[dep_idx];
+    fatso_push_back_v(out_deps, &dep);
+  }
 }

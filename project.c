@@ -145,13 +145,33 @@ int fatso_generate_dependency_graph(struct fatso* f) {
   struct fatso_dependency_graph* graph = fatso_dependency_graph_for_package(f, &f->project->package, &status);
   switch (status) {
     case FATSO_DEPENDENCY_GRAPH_CONFLICT: {
-      fprintf(stderr, "Could not generate dependency graph. Conflicts:\n");
-      // TODO: Print conflicts.
+      fprintf(stderr, "The following dependencies could not be simultaneously met:\n");
+
+      fatso_conflicts_t conflicts = {0};
+      fatso_dependency_graph_get_conflicts(graph, &conflicts);
+      for (size_t i = 0; i < conflicts.size; ++i) {
+        struct fatso_dependency* dep = conflicts.data[i].dependency;
+        fprintf(stderr, "  %s ", dep->name);
+        for (size_t j = 0; j < dep->constraints.size; ++j) {
+          fprintf(stderr, "%s", fatso_constraint_to_string_unsafe(&dep->constraints.data[j]));
+          if (j + 1 < dep->constraints.size) {
+            fprintf(stderr, ", ");
+          }
+        }
+        fprintf(stderr, " (from %s %s)\n", conflicts.data[i].package->name, fatso_version_string(&conflicts.data[i].package->version));
+      }
+
       r = 1;
       break;
     }
     case FATSO_DEPENDENCY_GRAPH_UNKNOWN: {
-      fprintf(stderr, "Could not generate dependency graph, because there were unknown packages.\n");
+      fprintf(stderr, "The following packages could not be found in any repository:\n");
+      fatso_unknown_dependencies_t unknowns = {0};
+      fatso_dependency_graph_get_unknown_dependencies(graph, &unknowns);
+      for (size_t i = 0; i < unknowns.size; ++i) {
+        fprintf(stderr, "  %s\n", unknowns.data[i]->name);
+      }
+
       r = 1;
       break;
     }

@@ -136,6 +136,13 @@ enum fatso_dependency_graph_resolution_status {
   FATSO_DEPENDENCY_GRAPH_UNKNOWN,
 };
 
+struct fatso_dependency_package_pair {
+  struct fatso_package* package;
+  struct fatso_dependency* dependency;
+};
+typedef FATSO_ARRAY(struct fatso_dependency_package_pair) fatso_conflicts_t;
+typedef FATSO_ARRAY(struct fatso_dependency*) fatso_unknown_dependencies_t;
+
 struct fatso_dependency_graph;
 struct fatso_dependency_graph* fatso_dependency_graph_for_package(struct fatso* f, struct fatso_package*, enum fatso_dependency_graph_resolution_status* out_status);
 struct fatso_dependency_graph* fatso_dependency_graph_new();
@@ -144,6 +151,9 @@ void fatso_dependency_graph_free(struct fatso_dependency_graph*);
 int fatso_dependency_graph_add_closed_set(struct fatso_dependency_graph*, struct fatso_package*);
 int fatso_dependency_graph_add_open_set(struct fatso_dependency_graph*, struct fatso_dependency*, struct fatso_package* dependency_of);
 void fatso_dependency_graph_topological_sort(struct fatso_dependency_graph*, struct fatso*, struct fatso_package***, size_t*);
+
+void fatso_dependency_graph_get_conflicts(struct fatso_dependency_graph*, fatso_conflicts_t* out_conflicts);
+void fatso_dependency_graph_get_unknown_dependencies(struct fatso_dependency_graph*, fatso_unknown_dependencies_t* out_deps);
 
 #ifdef __cplusplus
 }
