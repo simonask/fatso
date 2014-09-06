@@ -4,7 +4,8 @@ author: Simon Ask Ulsnes <simon@ulsnes.dk>
 toolchain: make
 
 dependencies:
-- ['libyaml', '~> 0.1.4']
+- ['conflicter']
+- ['faker', '> 0.1']
 
 defines:
   FATSO: 1

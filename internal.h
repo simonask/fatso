@@ -61,6 +61,8 @@ struct fatso_constraint {
 };
 
 int fatso_constraint_from_string(struct fatso_constraint*, const char*);
+char* fatso_constraint_to_string(const struct fatso_constraint*);
+const char* fatso_constraint_to_string_unsafe(const struct fatso_constraint*);
 void fatso_constraint_destroy(struct fatso_constraint*);
 bool fatso_version_matches_constraints(const struct fatso_version*, const struct fatso_constraint* constraints, size_t num_constraints);
 

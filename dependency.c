@@ -3,6 +3,12 @@
 #include <stdlib.h> // free
 #include <yaml.h>
 
+#if defined(DEBUG_DEPENDENCY_RESOLUTION)
+#define debugdep debugf
+#else
+#define debugdep(...)
+#endif
+
 void
 fatso_dependency_init(
   struct fatso_dependency* dep,
@@ -70,10 +76,11 @@ fatso_dependency_parse(struct fatso_dependency* dep, struct yaml_document_s* doc
     constraint.version_requirement = FATSO_VERSION_ANY;
   } else if (version_or_options->type == YAML_SCALAR_NODE) {
     version_requirement_string = fatso_yaml_scalar_strdup(version_or_options);
-    struct fatso_constraint constraint;
     r = fatso_constraint_from_string(&constraint, version_requirement_string);
-    if (r != 0)
+    if (r != 0) {
+      *out_error_message = strdup("Invalid constraint!");
       goto error;
+    }
   } else {
     *out_error_message = strdup("Invalid version/options!");
     goto out;
@@ -82,6 +89,7 @@ fatso_dependency_parse(struct fatso_dependency* dep, struct yaml_document_s* doc
   char* name = fatso_yaml_scalar_strdup(package_name);
   fatso_dependency_init(dep, name, &constraint, 1);
   fatso_free(name);
+  r = 0;
 out:
   fatso_free(version_requirement_string);
   return r;
@@ -140,6 +148,7 @@ increment_indices_from(struct fatso_dependency_graph* graph, unsigned int insert
 struct fatso_dependency_graph*
 fatso_dependency_graph_copy(struct fatso_dependency_graph* old) {
   struct fatso_dependency_graph* graph = fatso_dependency_graph_new();
+  debugdep("New graph: %p from %p", graph, old);
 
   // Shallow is fine, because package pointers are shared.
   fatso_copy_array(&graph->closed_set, &old->closed_set);
@@ -169,6 +178,8 @@ fatso_dependency_graph_copy(struct fatso_dependency_graph* old) {
 
 void
 fatso_dependency_graph_free(struct fatso_dependency_graph* graph) {
+  debugdep("Deleting graph: %p", graph);
+
   for (size_t i = 0; i < graph->own_dependencies.size; ++i) {
     fatso_dependency_destroy(&graph->own_dependencies.data[i]);
   }
@@ -205,10 +216,10 @@ compare_package_pointers_by_name(const void* ppa, const void* ppb) {
 }
 
 static int
-compare_dependency_pointers_by_name(const void* ppa, const void* ppb) {
-  const struct fatso_dependency* pa = *(void**)ppa;
-  const struct fatso_dependency* pb = *(void**)ppb;
-  return strcmp(pa->name, pb->name);
+compare_dependencies_by_name(const void* pa, const void* pb) {
+  const struct fatso_dependency* a = pa;
+  const struct fatso_dependency* b = pb;
+  return strcmp(a->name, b->name);
 }
 
 static int
@@ -234,6 +245,7 @@ fatso_dependency_graph_add_closed_set(
   struct fatso_dependency_graph* graph,
   struct fatso_package* p
 ) {
+  debugdep("Graph %p settling with %p (%s %s)", graph, p, p->name, fatso_version_string(&p->version));
   fatso_set_insert_v(&graph->closed_set, &p, compare_package_pointers_by_name);
   return 0;
 }
@@ -246,6 +258,7 @@ fatso_dependency_graph_register_dependency(
 ) {
   if (dependency_of == NULL)
     return;
+  debugdep("Graph %p registering dependency %s <- %s %s", graph, graph->own_dependencies.data[dep_idx].name, dependency_of->name, fatso_version_string(&dependency_of->version));
 
   struct fatso_reverse_dependency_list initial = {
     .dependency = dep_idx,
@@ -283,14 +296,16 @@ fatso_dependency_graph_add_open_set(
   struct fatso_dependency* dep,
   struct fatso_package* dependency_of
 ) {
-  struct fatso_dependency** existing_owned_dependency_p;
-  existing_owned_dependency_p = fatso_bsearch_v(&dep, &graph->own_dependencies, compare_dependency_pointers_by_name);
+  debugdep("Graph %p open set <- '%s %s' (from '%s %s')", graph, dep->name, fatso_constraint_to_string_unsafe(&dep->constraints.data[0]), dependency_of->name, fatso_version_string(&dependency_of->version));
+  struct fatso_dependency* existing_dep;
+  existing_dep = fatso_bsearch_v(dep, &graph->own_dependencies, compare_dependencies_by_name);
 
   // We've never seen this before, so it can't go wrong.
-  if (existing_owned_dependency_p == NULL) {
+  if (existing_dep == NULL) {
+    debugdep("=> Graph %p doesn't have '%s' in its dependencies, adding.", graph, dep->name);
     struct fatso_dependency duplicate;
     fatso_dependency_copy(&duplicate, dep);
-    struct fatso_dependency* inserted = fatso_set_insert_v(&graph->own_dependencies, &duplicate, compare_dependency_pointers_by_name);
+    struct fatso_dependency* inserted = fatso_set_insert_v(&graph->own_dependencies, &duplicate, compare_dependencies_by_name);
     unsigned int inserted_index = inserted - graph->own_dependencies.data;
     increment_indices_from(graph, inserted_index);
     fatso_set_insert_v(&graph->open_set, &inserted_index, compare_uints);
@@ -298,7 +313,6 @@ fatso_dependency_graph_add_open_set(
     return FATSO_DEPENDENCY_OK;
   }
 
-  struct fatso_dependency* existing_dep = *existing_owned_dependency_p;
   unsigned int existing_index = existing_dep - graph->own_dependencies.data;
   fatso_dependency_graph_register_dependency(graph, existing_index, dependency_of);
 
@@ -306,8 +320,10 @@ fatso_dependency_graph_add_open_set(
   struct fatso_package** existing_package_p;
   existing_package_p = fatso_bsearch_v(dep->name, &graph->closed_set, compare_string_with_package_pointer);
   if (existing_package_p == NULL) {
+    debugdep("=> Graph %p already has '%s' in its dependencies, appending constraints...");
     // It's not in the closed set -- add the constraints from the incoming dependency.
     for (size_t i = 0; i < dep->constraints.size; ++i) {
+      debugdep("==> %s", fatso_constraint_to_string_unsafe(&dep->constraints.data[i]));
       fatso_dependency_add_constraint(existing_dep, &dep->constraints.data[i]);
     }
     return FATSO_DEPENDENCY_OK;
@@ -315,8 +331,10 @@ fatso_dependency_graph_add_open_set(
     // It's in the closed set -- check that the pinned version matches this dependency.
     struct fatso_package* package = *existing_package_p;
     if (fatso_version_matches_constraints(&package->version, dep->constraints.data, dep->constraints.size)) {
+      debugdep("=> Graph %p has '%s' pinned at %s, which is OK.", graph, dep->name, fatso_version_string(&package->version));
       return FATSO_DEPENDENCY_OK;
     } else {
+      debugdep("=> Graph %p has '%s' pinned at %s, which causes a conflict. :(", graph, dep->name, fatso_version_string(&package->version));
       fatso_dependency_graph_add_conflict(graph, existing_index);
       return FATSO_DEPENDENCY_BLOCKED;
     }
@@ -334,6 +352,7 @@ fatso_dependency_graph_add_dependencies_from_package(
   struct fatso* f,
   struct fatso_package* package
 ) {
+  debugdep("Adding dependencies from package '%s %s' to graph %p.", package->name, fatso_version_string(&package->version), graph);
   for (size_t i = 0; i < package->base_environment.dependencies.size; ++i) {
     struct fatso_dependency* dep = &package->base_environment.dependencies.data[i];
     int r = fatso_dependency_graph_add_open_set(graph, dep, package);
@@ -368,15 +387,18 @@ fatso_dependency_graph_resolve(
     struct fatso_dependency_graph* candidate = NULL;
     while (true) {
       // Find the newest version that's older than the one we've already seen:
+      debugdep("Finding package to satisfy dependency '%s %s' (must be less than '%s')", dep->name, fatso_constraint_to_string_unsafe(&dep->constraints.data[0]), package ? fatso_version_string(&package->version) : "nothing");
       q = fatso_repository_find_package_matching_dependency(f, dep, package ? &package->version : NULL, &package);
 
       switch (q) {
         case FATSO_PACKAGE_UNKNOWN: {
+          debugdep("UNKNOWN PACKAGE: %s", dep->name);
           fatso_dependency_graph_add_unknown(graph, dep_idx);
           *out_status = FATSO_DEPENDENCY_GRAPH_UNKNOWN;
           return candidate;
         }
         case FATSO_PACKAGE_NO_MATCHING_VERSION: {
+          debugdep("NO MORE MATCHING VERSIONS!");
           // No more matching versions.
           // If we had a candidate, register conflicts in that.
           *out_status = FATSO_DEPENDENCY_GRAPH_CONFLICT;
@@ -388,6 +410,7 @@ fatso_dependency_graph_resolve(
           }
         }
         case FATSO_PACKAGE_OK: {
+          debugdep("FOUND: %s %s", package->name, fatso_version_string(&package->version));
           // Found a package, clean up old candidates:
           if (candidate) {
             fatso_dependency_graph_free(candidate);
@@ -399,6 +422,7 @@ fatso_dependency_graph_resolve(
 
           int r = fatso_dependency_graph_add_dependencies_from_package(candidate, f, package);
           if (r == FATSO_DEPENDENCY_OK) {
+            debugdep("=> Succeeded adding all dependencies for package '%s' to open set.", package->name);
             struct fatso_dependency_graph* subcandidate;
             subcandidate = fatso_dependency_graph_resolve(f, candidate, out_status);
             if (subcandidate != candidate) {
@@ -406,13 +430,16 @@ fatso_dependency_graph_resolve(
               candidate = subcandidate;
             }
 
+            debugdep("Adding package '%s' to topo-list.", package->name);
             // Add the package to the topologically sorted list (i.e., after its dependencies):
             char* name = strdup(dep->name);
             fatso_push_back_v(&candidate->topological_order, &name);
 
             if (*out_status == FATSO_DEPENDENCY_GRAPH_SUCCESS) {
+              debugdep("Graph %p succeeded!", candidate);
               return candidate;
             }
+            debugdep("Graph %p was unsuccessful! :(", candidate);
           }
           break;
         }
@@ -427,6 +454,7 @@ fatso_dependency_graph_for_package(
   struct fatso_package* package,
   enum fatso_dependency_graph_resolution_status* out_status
 ) {
+  debugdep("Generating dependency graph for package: %s", package->name);
   struct fatso_dependency_graph* graph = fatso_dependency_graph_new();
   fatso_dependency_graph_add_closed_set(graph, package);
 

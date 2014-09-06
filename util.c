@@ -9,8 +9,28 @@
 #include <pwd.h>      // getpwuid
 #include <string.h>   // memcpy
 #include <inttypes.h> // uint8_t
+#include <stdarg.h>
+
+#define BLACK   "\033[22;30m"
+#define RED     "\033[01;31m"
+#define GREEN   "\033[01;32m"
+#define MAGENTA "\033[01;35m"
+#define CYAN    "\033[01;36m"
+#define YELLOW  "\033[01;33m"
+#define RESET   "\033[00m"
 
 typedef uint8_t byte;
+
+void
+debugf_(const char* fmt, ...) {
+  va_list ap;
+  va_start(ap, fmt);
+  char* buffer;
+  vasprintf(&buffer, fmt, ap);
+  va_end(ap);
+  fprintf(stderr, YELLOW "DEBUG:" RESET " %s\n", buffer);
+  free(buffer);
+}
 
 const char*
 fatso_get_homedir() {
@@ -103,8 +123,9 @@ fatso_lower_bound_cmp(const void* key, void* base, size_t nel, size_t width, int
 void*
 fatso_bsearch(const void* key, void* base, size_t nel, size_t width, int(*compare)(const void*, const void*)) {
   int cmp;
-  void* p = fatso_lower_bound_cmp(key, base, nel, width, compare, &cmp);
-  if (cmp == 0) {
+  byte* end = ((byte*)base) + nel * width;
+  byte* p = fatso_lower_bound_cmp(key, base, nel, width, compare, &cmp);
+  if (p < end && cmp == 0) {
     return p;
   } else {
     return NULL;

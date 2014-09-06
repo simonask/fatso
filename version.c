@@ -256,3 +256,20 @@ fatso_constraint_from_string(struct fatso_constraint* c, const char* str) {
 
   return fatso_version_from_string(&c->version, p);
 }
+
+char*
+fatso_constraint_to_string(const struct fatso_constraint* c) {
+  const char* modifier = fatso_version_requirement_to_string(c->version_requirement);
+  char* buffer;
+  asprintf(&buffer, "%s%s%s", modifier, c->version_requirement != FATSO_VERSION_ANY ? " " : "", c->version_requirement != FATSO_VERSION_ANY ? fatso_version_string(&c->version) : "");
+  return buffer;
+}
+
+const char*
+fatso_constraint_to_string_unsafe(const struct fatso_constraint* c) {
+  static char* p = NULL;
+  free(p);
+  const char* modifier = fatso_version_requirement_to_string(c->version_requirement);
+  asprintf(&p, "%s%s%s", modifier, c->version_requirement != FATSO_VERSION_ANY ? " " : "", c->version_requirement != FATSO_VERSION_ANY ? fatso_version_string(&c->version) : "");
+  return p;
+}

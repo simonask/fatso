@@ -1,0 +1,4 @@
+project: conflicter
+version: 0.1
+dependencies:
+  - [faker, '< 0.2']

@@ -10,6 +10,13 @@ extern "C" {
   #include <stdbool.h>
 #endif
 
+#ifndef NDEBUG
+void debugf_(const char* fmt, ...);
+#define debugf(...) debugf_(__VA_ARGS__)
+#else
+#define debugf(...)
+#endif
+
 const char*
 fatso_get_homedir();
 
