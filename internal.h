@@ -72,6 +72,7 @@ struct fatso_dependency {
 void fatso_dependency_init(struct fatso_dependency*, const char* name, const struct fatso_constraint* constraints, size_t num_constraints);
 void fatso_dependency_destroy(struct fatso_dependency*);
 int fatso_dependency_parse(struct fatso_dependency*, struct yaml_document_s*, struct yaml_node_s*, char** out_error_message);
+void fatso_dependency_add_constraint(struct fatso_dependency*, const struct fatso_constraint* constraint);
 
 struct fatso_define {
   char* key;
@@ -130,16 +131,16 @@ void fatso_project_destroy(struct fatso_project*);
 enum fatso_dependency_graph_resolution_status {
   FATSO_DEPENDENCY_GRAPH_SUCCESS,
   FATSO_DEPENDENCY_GRAPH_CONFLICT,
-  FATSO_DEPENDENCY_GRAPH_CIRCULAR,
+  FATSO_DEPENDENCY_GRAPH_UNKNOWN,
 };
 
 struct fatso_dependency_graph;
+struct fatso_dependency_graph* fatso_dependency_graph_for_package(struct fatso* f, struct fatso_package*, enum fatso_dependency_graph_resolution_status* out_status);
 struct fatso_dependency_graph* fatso_dependency_graph_new();
 struct fatso_dependency_graph* fatso_dependency_graph_copy(struct fatso_dependency_graph*);
 void fatso_dependency_graph_free(struct fatso_dependency_graph*);
-void fatso_dependency_graph_add_package(struct fatso_dependency_graph*, struct fatso_package*);
-void fatso_dependency_graph_add_dependency(struct fatso_dependency_graph*, struct fatso_dependency*);
-enum fatso_dependency_graph_resolution_status fatso_dependency_graph_resolve(struct fatso_dependency_graph*);
+int fatso_dependency_graph_add_closed_set(struct fatso_dependency_graph*, struct fatso_package*);
+int fatso_dependency_graph_add_open_set(struct fatso_dependency_graph*, struct fatso_dependency*, struct fatso_package* dependency_of);
 void fatso_dependency_graph_topological_sort(struct fatso_dependency_graph*, struct fatso_package***, size_t*);
 
 #ifdef __cplusplus

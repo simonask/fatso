@@ -49,6 +49,12 @@ fatso_push_back_(void** inout_data, size_t* inout_num_elements, const void* new_
 #define fatso_push_back_v(array, new_element) \
   fatso_push_back(&((array)->data), &((array)->size), (new_element), sizeof(*new_element))
 
+int
+fatso_erase(void** inout_data, size_t* inout_num_elements, size_t idx, size_t width);
+
+#define fatso_erase_v(array, idx) \
+  fatso_erase(&((array)->data), &((array)->size), idx, sizeof(*((array)->data)))
+
 void*
 fatso_multiset_insert(void** inout_data, size_t* inout_num_elements, const void* new_element, size_t width, int(*compare)(const void*, const void*));
 

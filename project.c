@@ -141,9 +141,8 @@ fatso_load_dependency_graph(struct fatso* f) {
 int fatso_generate_dependency_graph(struct fatso* f) {
   int r = 0;
 
-  struct fatso_dependency_graph* candidate = fatso_dependency_graph_new();
-  fatso_dependency_graph_add_package(candidate, &f->project->package);
-  enum fatso_dependency_graph_resolution_status status = fatso_dependency_graph_resolve(candidate);
+  enum fatso_dependency_graph_resolution_status status;
+  struct fatso_dependency_graph* graph = fatso_dependency_graph_for_package(f, &f->project->package, &status);
   switch (status) {
     case FATSO_DEPENDENCY_GRAPH_CONFLICT: {
       fprintf(stderr, "Could not generate dependency graph. Conflicts:\n");
@@ -151,31 +150,17 @@ int fatso_generate_dependency_graph(struct fatso* f) {
       r = 1;
       break;
     }
-    case FATSO_DEPENDENCY_GRAPH_CIRCULAR: {
-      fprintf(stderr, "Could not generate dependency graph, because there was a circular dependency.\n");
+    case FATSO_DEPENDENCY_GRAPH_UNKNOWN: {
+      fprintf(stderr, "Could not generate dependency graph, because there were unknown packages.\n");
       r = 1;
       break;
     }
     case FATSO_DEPENDENCY_GRAPH_SUCCESS: {
-      fatso_dependency_graph_topological_sort(candidate, &f->project->install_order.data, &f->project->install_order.size);
+      fatso_dependency_graph_topological_sort(graph, &f->project->install_order.data, &f->project->install_order.size);
       break;
     }
   }
+  fatso_dependency_graph_free(graph);
 
-  fatso_dependency_graph_free(candidate);
   return r;
-
-  // Add dependencies with constraints to open set.
-  // For each dependency:
-  //    For each version, starting with newest viable:
-  //        Create new open set as a duplicate of the open set
-  //        For each dependency:
-  //            If the dependency is already in the open set:
-  //                If the constraint overlaps:
-  //                    Merge the constraints
-  //                Else:
-  //                    Not viable.
-  //            Else:
-  //                Add to the open set, recurse.
-  return -1;
 }

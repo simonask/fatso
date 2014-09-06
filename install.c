@@ -1,4 +1,5 @@
 #include "fatso.h"
+#include "internal.h"
 #include <stdio.h>
 
 int
@@ -20,6 +21,9 @@ out:
 
 int
 fatso_install_dependencies(struct fatso* f) {
-  fprintf(stderr, "%s: NIY\n", __func__);
+  for (size_t i = 0; i < f->project->install_order.size; ++i) {
+    struct fatso_package* p = f->project->install_order.data[i];
+    printf("INSTALL: %s (%s)\n", p->name, fatso_version_string(&p->version));
+  }
   return -1;
 }
