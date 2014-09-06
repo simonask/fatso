@@ -5,7 +5,7 @@ toolchain: make
 
 dependencies:
 - ['conflicter']
-- ['faker', '> 0.2']
+- ['faker', '> 0.1']
 
 defines:
   FATSO: 1
