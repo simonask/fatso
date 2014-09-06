@@ -156,7 +156,7 @@ int fatso_generate_dependency_graph(struct fatso* f) {
       break;
     }
     case FATSO_DEPENDENCY_GRAPH_SUCCESS: {
-      fatso_dependency_graph_topological_sort(graph, &f->project->install_order.data, &f->project->install_order.size);
+      fatso_dependency_graph_topological_sort(graph, f, &f->project->install_order.data, &f->project->install_order.size);
       break;
     }
   }

@@ -143,7 +143,7 @@ struct fatso_dependency_graph* fatso_dependency_graph_copy(struct fatso_dependen
 void fatso_dependency_graph_free(struct fatso_dependency_graph*);
 int fatso_dependency_graph_add_closed_set(struct fatso_dependency_graph*, struct fatso_package*);
 int fatso_dependency_graph_add_open_set(struct fatso_dependency_graph*, struct fatso_dependency*, struct fatso_package* dependency_of);
-void fatso_dependency_graph_topological_sort(struct fatso_dependency_graph*, struct fatso_package***, size_t*);
+void fatso_dependency_graph_topological_sort(struct fatso_dependency_graph*, struct fatso*, struct fatso_package***, size_t*);
 
 #ifdef __cplusplus
 }

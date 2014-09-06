@@ -105,13 +105,13 @@ struct fatso_reverse_dependency_list {
 
 struct fatso_dependency_graph {
   // Shared pointers:
+  struct fatso_package* root;
   FATSO_ARRAY(struct fatso_package*) closed_set;
   FATSO_ARRAY(unsigned int) open_set;  // sorted by pointer
   FATSO_ARRAY(unsigned int) conflicts; // sorted by pointer
   FATSO_ARRAY(unsigned int) unknown;   // sorted by pointer
 
   // Owned pointers, that must be freed iteratively:
-  FATSO_ARRAY(char*) topological_order;
   FATSO_ARRAY(struct fatso_dependency) own_dependencies; // sorted by name
   FATSO_ARRAY(struct fatso_reverse_dependency_list) depended_on_by; // sorted by name
 };
@@ -149,6 +149,7 @@ struct fatso_dependency_graph*
 fatso_dependency_graph_copy(struct fatso_dependency_graph* old) {
   struct fatso_dependency_graph* graph = fatso_dependency_graph_new();
   debugdep("New graph: %p from %p", graph, old);
+  graph->root = old->root;
 
   // Shallow is fine, because package pointers are shared.
   fatso_copy_array(&graph->closed_set, &old->closed_set);
@@ -161,11 +162,6 @@ fatso_dependency_graph_copy(struct fatso_dependency_graph* old) {
   fatso_copy_array(&graph->own_dependencies, &old->own_dependencies);
   for (size_t i = 0; i < graph->own_dependencies.size; ++i) {
     fatso_dependency_copy(&graph->own_dependencies.data[i], &old->own_dependencies.data[i]);
-  }
-
-  fatso_copy_array(&graph->topological_order, &old->topological_order);
-  for (size_t i = 0; i < graph->topological_order.size; ++i) {
-    graph->topological_order.data[i] = strdup(old->topological_order.data[i]);
   }
 
   fatso_copy_array(&graph->depended_on_by, &old->depended_on_by);
@@ -184,10 +180,6 @@ fatso_dependency_graph_free(struct fatso_dependency_graph* graph) {
     fatso_dependency_destroy(&graph->own_dependencies.data[i]);
   }
 
-  for (size_t i = 0; i < graph->topological_order.size; ++i) {
-    fatso_free(graph->topological_order.data[i]);
-  }
-
   for (size_t i = 0; i < graph->depended_on_by.size; ++i) {
     fatso_free(graph->depended_on_by.data[i].packages.data);
   }
@@ -197,7 +189,6 @@ fatso_dependency_graph_free(struct fatso_dependency_graph* graph) {
   fatso_free(graph->conflicts.data);
   fatso_free(graph->unknown.data);
   fatso_free(graph->own_dependencies.data);
-  fatso_free(graph->topological_order.data);
   fatso_free(graph->depended_on_by.data);
 
   fatso_free(graph);
@@ -430,11 +421,6 @@ fatso_dependency_graph_resolve(
               candidate = subcandidate;
             }
 
-            debugdep("Adding package '%s' to topo-list.", package->name);
-            // Add the package to the topologically sorted list (i.e., after its dependencies):
-            char* name = strdup(dep->name);
-            fatso_push_back_v(&candidate->topological_order, &name);
-
             if (*out_status == FATSO_DEPENDENCY_GRAPH_SUCCESS) {
               debugdep("Graph %p succeeded!", candidate);
               return candidate;
@@ -456,6 +442,7 @@ fatso_dependency_graph_for_package(
 ) {
   debugdep("Generating dependency graph for package: %s", package->name);
   struct fatso_dependency_graph* graph = fatso_dependency_graph_new();
+  graph->root = package;
   fatso_dependency_graph_add_closed_set(graph, package);
 
   int r = fatso_dependency_graph_add_dependencies_from_package(graph, f, package);
@@ -470,17 +457,59 @@ fatso_dependency_graph_for_package(
   }
 }
 
+typedef FATSO_ARRAY(struct fatso_package*) package_list_t;
+typedef FATSO_ARRAY(const char*) string_set_t;
+
+static int
+compare_strings(const void* pa, const void* pb) {
+  const char* a = *(void**)pa;
+  const char* b = *(void**)pb;
+  return strcmp(a, b);
+}
+
+static void
+toposort_dependencies_r(
+  const struct fatso_dependency_graph* graph,
+  struct fatso* f,
+  struct fatso_package* package,
+  package_list_t* out_list,
+  string_set_t* seen
+) {
+  const char** seenp = fatso_bsearch_v(&package->name, seen, compare_strings);
+  if (seenp == NULL) {
+    fatso_set_insert_v(seen, &package->name, compare_strings);
+
+    for (size_t i = 0; i < package->base_environment.dependencies.size; ++i) {
+      struct fatso_dependency* dep = &package->base_environment.dependencies.data[i];
+      struct fatso_package** pp = fatso_bsearch_v(dep->name, &graph->closed_set, compare_string_with_package_pointer);
+      if (pp) {
+        struct fatso_package* p = *pp;
+        toposort_dependencies_r(graph, f, p, out_list, seen);
+      } else {
+        // ERROR?! Dependency graph doesn't contain a package requested by dependency.
+      }
+    }
+    // TODO: Include auxillary environments.
+
+    if (package != graph->root) {
+      fatso_push_back_v(out_list, &package);
+    }
+  } else {
+    // ERROR?! Possible circular dependency.
+  }
+}
+
 void
-fatso_dependency_graph_topological_sort(struct fatso_dependency_graph* graph, struct fatso_package*** out_list, size_t* out_size) {
-  FATSO_ARRAY(struct fatso_package*) list = {
+fatso_dependency_graph_topological_sort(struct fatso_dependency_graph* graph, struct fatso* f, struct fatso_package*** out_list, size_t* out_size) {
+  package_list_t list = {
     .data = *out_list,
     .size = *out_size,
   };
 
-  for (size_t i = 0; i < graph->topological_order.size; ++i) {
-    const char* name = graph->topological_order.data[i];
-    struct fatso_package** package_p = fatso_bsearch_v(name, &graph->closed_set, compare_string_with_package_pointer);
-    fatso_push_back_v(&list, package_p);
+  string_set_t seen = {0};
+
+  for (size_t i = 0; i < graph->closed_set.size; ++i) {
+    toposort_dependencies_r(graph, f, graph->closed_set.data[i], &list, &seen);
   }
 
   *out_list = list.data;
