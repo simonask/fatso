@@ -80,7 +80,8 @@ That depends if all your dependencies are relocatable. To be certain, run
 - GNU Make or compatible
 - C99 compiler (Clang or GCC should both work)
 - [libyaml](http://pyyaml.org/wiki/LibYAML)
-- [Git](http://git-scm.com/) (`git` tool must be in path)
+- [Git](http://git-scm.com/) (`git` tool must be in $PATH)
+- [curl](http://curl.haxx.se) (`curl` tool must be in $PATH)
 
 
 ## Building
