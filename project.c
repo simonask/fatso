@@ -28,8 +28,8 @@ fatso_unload_project(struct fatso* f) {
 }
 
 static char*
-find_fatso_yml(const char* working_dir) {
-  char* r = strdup(working_dir);
+find_fatso_yml(struct fatso* f) {
+  char* r = strdup(fatso_working_directory(f));
   char* check;
   asprintf(&check, "%s/fatso.yml", r);
 
@@ -97,7 +97,7 @@ fatso_load_project(struct fatso* f) {
 
   f->project = fatso_alloc(sizeof(struct fatso_project));
   fatso_project_init(f->project);
-  f->project->path = find_fatso_yml(f->working_dir);
+  f->project->path = find_fatso_yml(f);
 
   if (!f->project->path) {
     fprintf(stderr, "Error: fatso.yml not found in this or parent directories. Aborting.\n");
