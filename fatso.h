@@ -25,9 +25,10 @@ void fatso_set_home_directory(struct fatso*, const char*);
 void fatso_set_working_directory(struct fatso*, const char*);
 const char* fatso_home_directory(struct fatso*);
 const char* fatso_working_directory(struct fatso*);
+const char* fatso_packages_directory(struct fatso*);
 
 // Repository functions:
-int fatso_update_packages(struct fatso*);
+int fatso_sync_packages(struct fatso*);
 
 // Project functions:
 int fatso_load_project(struct fatso*);
@@ -42,7 +43,8 @@ const char* fatso_project_path(struct fatso*);
 
 // Commands:
 int fatso_install(struct fatso*, int argc, char* const* argv);
-int fatso_update(struct fatso*, int argc, char* const* argv);
+int fatso_upgrade(struct fatso*, int argc, char* const* argv);
+int fatso_sync(struct fatso*, int argc, char* const* argv);
 int fatso_help(struct fatso*, int argc, char* const* argv);
 int fatso_info(struct fatso*, int argc, char* const* argv);
 

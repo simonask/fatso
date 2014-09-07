@@ -13,10 +13,11 @@ usage(const char* program_name) {
     "\n\n");
   fprintf(stderr,
     "Commands:"
-    "\n\tinit         Initializes an empty Fatso project."
+    "\n\tinit         Create an empty fatso.yml in the working dir, if none exists."
     "\n\tbuild        Builds the current Fatso project."
     "\n\tinstall      Installs dependencies for the current Fatso project."
-    "\n\tupgrade      Upgrades dependencies for the current Fatso project."
+    "\n\tupgrade      Upgrades dependencies for the current Fatso project. Implies 'sync'."
+    "\n\tsync         Get latest package descriptions from online repository."
     "\n\tclean        Clean slate."
     "\n\tinfo         Displays info about a package."
     "\n\thelp         Displays this help text."
@@ -37,6 +38,9 @@ install_usage(const char* program_name) {}
 
 static void
 upgrade_usage(const char* program_name) {}
+
+static void
+sync_usage(const char* program_name) {}
 
 static void
 info_usage(const char* program_name) {}
@@ -60,6 +64,7 @@ fatso_help(struct fatso* f, int argc, char* const* argv) {
     {"build", build_usage},
     {"install", install_usage},
     {"upgrade", upgrade_usage},
+    {"sync", sync_usage},
     {"info", info_usage},
     {"cflags", cflags_usage},
     {"ldflags", ldflags_usage},
