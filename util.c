@@ -47,13 +47,13 @@ fatso_directory_exists(const char* path) {
   struct stat s;
   int r = lstat(path, &s);
 
-  if (errno == ENOENT || errno == ENOTDIR) {
-    return false;
-  }
-
   if (r != 0) {
-    perror("lstat");
-    exit(1);
+    if (errno == ENOENT || errno == ENOTDIR) {
+      return false;
+    } else {
+      perror("lstat");
+      exit(1);
+    }
   }
 
   return S_ISDIR(s.st_mode);
@@ -64,13 +64,13 @@ fatso_file_exists(const char* path) {
   struct stat s;
   int r = lstat(path, &s);
 
-  if (errno == ENOENT || errno == ENOTDIR) {
-    return false;
-  }
-
   if (r != 0) {
-    perror("lstat");
-    exit(1);
+    if (errno == ENOENT || errno == ENOTDIR) {
+      return false;
+    } else {
+      perror("lstat");
+      exit(1);
+    }
   }
 
   return !(S_ISDIR(s.st_mode));
