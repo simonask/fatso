@@ -79,7 +79,7 @@ fatso_update_packages(struct fatso* f) {
   char* packages_dir = NULL;
   char* packages_git_dir = NULL;
 
-  asprintf(&packages_dir, "%s/packages", f->global_dir);
+  asprintf(&packages_dir, "%s/packages", fatso_home_directory(f));
   asprintf(&packages_git_dir, "%s/.git", packages_dir);
 
   if (!fatso_directory_exists(packages_dir)) {
@@ -100,7 +100,7 @@ fatso_update_packages(struct fatso* f) {
       goto out;
     }
   } else {
-    asprintf(&cmd, "git -C %s clone file:///Users/simon/code/fatso-packages/.git packages", f->global_dir);
+    asprintf(&cmd, "git -C %s clone http://github.com/simonask/fatso-packages packages", f->global_dir);
     r = system(cmd);
     if (r != 0) {
       fprintf(stderr, "git command failed with status %d: %s\nTry to fix it with `fatso doctor` maybe?\n", r, cmd);
