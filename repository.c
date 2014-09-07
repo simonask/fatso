@@ -32,6 +32,21 @@ int compare_packages_by_version(const void* a, const void* b) {
   return fatso_version_compare(&pa->version, &pb->version);
 }
 
+static void
+package_guess_version_from_filename(struct fatso_package* package, const char* path) {
+  const char* p0 = strrchr(path, '/') + 1;
+  const char* p1 = strrchr(path, '.');
+  if (p1 > p0) {
+    size_t len = p1 - p0;
+    char* buffer = alloca(len + 1);
+    memcpy(buffer, p0, len);
+    buffer[len] = '\0';
+
+    fatso_version_destroy(&package->version);
+    fatso_version_from_string(&package->version, buffer);
+  }
+}
+
 ssize_t
 fatso_repository_find_package_versions(struct fatso* f, const char* name, struct fatso_package** out_packages) {
   static fatso_package_versions_list_t* g_versions_cache = NULL;
@@ -84,6 +99,9 @@ fatso_repository_find_package_versions(struct fatso* f, const char* name, struct
           char* error_message;
           r = fatso_package_parse_from_file(package, fp, &error_message);
           if (r == 0) {
+            if (fatso_version_string(&package->version) == NULL) {
+              package_guess_version_from_filename(package, path);
+            }
             ++valid_i;
           } else {
             fprintf(stderr, "WARNING (%s): %s\n", path, error_message);
@@ -91,6 +109,8 @@ fatso_repository_find_package_versions(struct fatso* f, const char* name, struct
             fatso_package_destroy(package);
           }
           fclose(fp);
+        } else {
+          fprintf(stderr, "WARNING (%s): Could not open file.\n", path);
         }
       }
     }
