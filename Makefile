@@ -3,7 +3,23 @@ all: fatso
 CFLAGS := $(CFLAGS) -O0 -g -Wall -pedantic -Werror -Wno-gnu-zero-variadic-macro-arguments
 
 HEADERS := fatso.h util.h internal.h
-SOURCES := fatso.c help.c util.c project.c install.c yaml.c version.c dependency.c define.c environment.c info.c memory.c package.c repository.c sync.c
+SOURCES := \
+	define.c \
+	dependency.c \
+	environment.c \
+	fatso.c \
+	help.c \
+	info.c \
+	install.c \
+	memory.c \
+	package.c \
+	project.c \
+	repository.c \
+	sync.c \
+	util.c \
+	version.c \
+	yaml.c \
+
 OBJECTS := $(patsubst %.c,%.o,$(SOURCES))
 
 %.o: %.c $(HEADERS)
