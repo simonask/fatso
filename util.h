@@ -27,6 +27,9 @@ bool
 fatso_file_exists(const char* path);
 
 int
+fatso_mkdir_p(const char* path);
+
+int
 fatso_run(const char* command);
 
 /*

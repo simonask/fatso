@@ -10,6 +10,8 @@
 #include <string.h>   // memcpy
 #include <inttypes.h> // uint8_t
 #include <stdarg.h>
+#include <sys/param.h> // MAXPATHLEN
+#include <sys/types.h> // mkdir
 
 #define BLACK   "\033[22;30m"
 #define RED     "\033[01;31m"
@@ -74,6 +76,37 @@ fatso_file_exists(const char* path) {
   }
 
   return !(S_ISDIR(s.st_mode));
+}
+
+int
+fatso_mkdir_p(const char* path) {
+  const char* p0 = path;
+  char buffer[MAXPATHLEN];
+  char* buffer_p = buffer;
+  while (p0 && buffer_p < buffer + MAXPATHLEN) {
+    const char* p1 = strchr(p0 + 1, '/');
+    if (buffer_p != buffer) {
+      *buffer_p = '/';
+      ++buffer_p;
+    }
+    size_t nchars;
+    if (p1) {
+      nchars = p1 - p0;
+    } else {
+      nchars = strlen(p0);
+    }
+    strncpy(buffer_p, p0, nchars);
+    buffer_p += nchars;
+    *buffer_p = '\0';
+    p0 = p1;
+    int r = mkdir(buffer, 0755);
+    if (r != 0) {
+      if (errno != EEXIST && errno != EISDIR) {
+        return r;
+      }
+    }
+  }
+  return 0;
 }
 
 void*
