@@ -128,6 +128,7 @@ void fatso_package_destroy(struct fatso_package*);
 int fatso_package_parse(struct fatso_package*, struct yaml_document_s*, struct yaml_node_s*, char** out_error_message);
 int fatso_package_parse_from_file(struct fatso_package*, FILE* fp, char** out_error_message);
 int fatso_package_parse_from_string(struct fatso_package*, const char* buffer, char** out_error_message);
+char* fatso_package_build_path(struct fatso*, struct fatso_package*);
 
 enum fatso_repository_result {
   FATSO_PACKAGE_OK,

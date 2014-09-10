@@ -1,8 +1,10 @@
+#include "fatso.h"
 #include "internal.h"
 
 #include <string.h> // memset
 #include <yaml.h>
 #include <errno.h>
+#include <stdio.h> // asprintf
 
 void fatso_package_init(struct fatso_package* p) {
   memset(p, 0, sizeof(*p));
@@ -123,4 +125,11 @@ fatso_package_parse_from_string(struct fatso_package* p, const char* buffer, cha
 out:
   yaml_parser_delete(&parser);
   return r;
+}
+
+char*
+fatso_package_build_path(struct fatso* f, struct fatso_package* p) {
+  char* path;
+  asprintf(&path, "%s/.fatso/build/%s/%s", fatso_project_directory(f), p->name, fatso_version_string(&p->version));
+  return path;
 }
