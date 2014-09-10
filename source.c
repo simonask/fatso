@@ -1,36 +1,110 @@
+#include "fatso.h"
 #include "internal.h"
 
 #include <string.h> // strdup
 #include <yaml.h>
+#include <libgen.h> // basename
+#include <unistd.h> // getwd, chdir
 
 struct fatso_source_vtbl {
   const char* type;
-  int(*fetch)(struct fatso_package*, struct fatso_source*);
-  int(*build)(struct fatso_package*, struct fatso_source*);
-  int(*install)(struct fatso_package*, struct fatso_source*);
+  int(*fetch)(struct fatso*, struct fatso_package*, struct fatso_source*);
+  int(*unpack)(struct fatso*, struct fatso_package*, struct fatso_source*);
   void(*free)(void* thunk);
 };
 
 int
-fatso_tarball_fetch(struct fatso_package* package, struct fatso_source* source) {
-  return 1;
+tarball_get_paths(struct fatso* f, struct fatso_package* p, struct fatso_source* source, char** out_directory, char** out_filepath) {
+  int r = 0;
+  const char* url = source->name;
+  char* name = strdup(url); // Need a copy for basename()
+
+  char* filename = basename(name);
+  if (filename == NULL) {
+    perror("basename");
+    goto error;
+  }
+
+  asprintf(out_directory, "%s/sources/%s/%s", fatso_home_directory(f), p->name, fatso_version_string(&p->version));
+  asprintf(out_filepath, "%s/%s", *out_directory, filename);
+out:
+  fatso_free(name);
+  return r;
+error:
+  r = 1;
+  goto out;
 }
 
 int
-fatso_tarball_build(struct fatso_package* package, struct fatso_source* source) {
-  return 1;
+fatso_tarball_fetch(struct fatso* f, struct fatso_package* package, struct fatso_source* source) {
+  const char* url = source->name;
+  char* source_dir = NULL;
+  char* downloaded_file_path = NULL;
+
+  int r = tarball_get_paths(f, package, source, &source_dir, &downloaded_file_path);
+
+  r = fatso_mkdir_p(source_dir);
+  if (r != 0) {
+    perror("mkdir");
+    goto out;
+  }
+
+  if (!fatso_file_exists(downloaded_file_path)) {
+    r = fatso_download(downloaded_file_path, url);
+    if (r != 0) {
+      goto out;
+    }
+  }
+
+out:
+  fatso_free(source_dir);
+  fatso_free(downloaded_file_path);
+  return r;
 }
 
 int
-fatso_tarball_install(struct fatso_package* package, struct fatso_source* source) {
+fatso_tarball_unpack(struct fatso* f, struct fatso_package* package, struct fatso_source* source) {
+  char* source_dir = NULL;
+  char* downloaded_file_path = NULL;
+  char* build_path = NULL;
+  char* command = NULL;
+  char* oldwd = NULL;
+  int r = tarball_get_paths(f, package, source, &source_dir, &downloaded_file_path);
+  if (r != 0)
+    goto out;
+
+  if (!fatso_file_exists(downloaded_file_path)) {
+    fprintf(stderr, "File not found: %s\n", downloaded_file_path);
+    r = 1;
+    goto out;
+  }
+
+  build_path = fatso_package_build_path(f, package);
+  r = fatso_mkdir_p(build_path);
+  if (r != 0) {
+    perror(build_path);
+    goto out;
+  }
+
+  asprintf(&command, "tar xf \"%s\" -C \"%s\" --strip-components=1", downloaded_file_path, build_path);
+  r = system(command);
+  if (r != 0) {
+    goto out;
+  }
+
+out:
+  fatso_free(oldwd);
+  fatso_free(command);
+  fatso_free(source_dir);
+  fatso_free(downloaded_file_path);
+  fatso_free(build_path);
   return 1;
 }
 
 static const struct fatso_source_vtbl tarball_source_vtbl = {
   .type = "tarball",
   .fetch = fatso_tarball_fetch,
-  .build = fatso_tarball_build,
-  .install = fatso_tarball_install,
+  .unpack = fatso_tarball_unpack,
   .free = fatso_free,
 };
 
@@ -63,6 +137,16 @@ void
 fatso_source_destroy(struct fatso_source* source) {
   source->vtbl->free(source->thunk);
   fatso_free(source->name);
+}
+
+int
+fatso_source_fetch(struct fatso* f, struct fatso_package* p, struct fatso_source* source) {
+  return source->vtbl->fetch(f, p, source);
+}
+
+int
+fatso_source_unpack(struct fatso* f, struct fatso_package* p, struct fatso_source* source) {
+  return source->vtbl->unpack(f, p, source);
 }
 
 

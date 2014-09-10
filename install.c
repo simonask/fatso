@@ -55,9 +55,40 @@ print_install_progress(struct fatso* f, struct fatso_package* p, enum install_st
 }
 
 int
+fatso_package_download(struct fatso* f, struct fatso_package* p, struct fatso_source** out_chosen_source) {
+  if (p->source == NULL) {
+    print_install_progress(f, p, INSTALL_STATUS_ERROR, "Invalid package definition, no source specified!");
+    return 1;
+  } else {
+    *out_chosen_source = p->source;
+    return fatso_source_fetch(f, p, p->source);
+  }
+}
+
+int
+fatso_package_unpack(struct fatso* f, struct fatso_package* p, struct fatso_source* source) {
+  return fatso_source_unpack(f, p, source);
+}
+
+int
 fatso_package_download_and_unpack(struct fatso* f, struct fatso_package* p) {
+  struct fatso_source* chosen_source = NULL;
+  int r;
+
   print_install_progress(f, p, INSTALL_STATUS_WORKING, "Downloading...");
-  return 0;
+
+  r = fatso_package_download(f, p, &chosen_source);
+  if (r != 0)
+    goto out;
+
+  print_install_progress(f, p, INSTALL_STATUS_WORKING, "Unpacking...");
+
+  r = fatso_package_unpack(f, p, chosen_source);
+  if (r != 0)
+    goto out;
+
+out:
+  return r;
 }
 
 int
