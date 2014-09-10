@@ -32,6 +32,9 @@ fatso_mkdir_p(const char* path);
 int
 fatso_run(const char* command);
 
+int
+fatso_download(const char* target_path, const char* uri);
+
 /*
   fatso_lower_bound is identical to bsearch, except it returns a pointer to the first element that's *not* less than key,
   instead of NULL when the key is not found.

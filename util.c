@@ -109,6 +109,15 @@ fatso_mkdir_p(const char* path) {
   return 0;
 }
 
+int
+fatso_download(const char* target_path, const char* uri) {
+  char* command = NULL;
+  asprintf(&command, "curl -o \"%s\" \"%s\"", target_path, uri);
+  int r = system(command);
+  fatso_free(command);
+  return r;
+}
+
 void*
 fatso_push_back_(void** inout_data, size_t* inout_num_elements, const void* new_element, size_t element_size) {
   size_t old_size = *inout_num_elements;
