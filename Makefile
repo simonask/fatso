@@ -15,6 +15,7 @@ SOURCES := \
 	package.c \
 	project.c \
 	repository.c \
+	source.c \
 	sync.c \
 	util.c \
 	version.c \

@@ -5,9 +5,27 @@
 
 static void
 display_info_for_package(const struct fatso_package* p) {
-  printf("Package: %s\nAuthor: %s\nVersion: %s\nToolchain: %s\n", p->name, p->author, fatso_version_string(&p->version), p->toolchain);
+  if (p->name) {
+    printf("project: %s\n", p->name);
+  } else {
+    printf("project: <NO NAME>\n");
+  }
 
-  printf("Dependencies:\n");
+  if (p->author) {
+    printf("authors: %s\n", p->author);
+  }
+
+  printf("version: %s\n", fatso_version_string(&p->version));
+
+  if (p->source) {
+    printf("source: %s\n", p->source->name);
+  }
+
+  if (p->toolchain) {
+    printf("toolchain: %s\n", p->toolchain);
+  }
+
+  printf("dependencies:\n");
   // TODO: Use consolidated dependencies.
   for (size_t i = 0; i < p->base_environment.dependencies.size; ++i) {
     const struct fatso_dependency* dep = &p->base_environment.dependencies.data[i];
@@ -27,7 +45,7 @@ display_info_for_package(const struct fatso_package* p) {
     printf("\n");
   }
 
-  printf("Defines:\n");
+  printf("defines:\n");
   // TODO: Use consolidated defines.
   for (size_t i = 0; i < p->base_environment.defines.size; ++i) {
     const struct fatso_define* def = &p->base_environment.defines.data[i];

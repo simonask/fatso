@@ -47,8 +47,19 @@ int fatso_package_parse(struct fatso_package* p, struct yaml_document_s* doc, st
 
   int r = 0;
 
+  yaml_node_t* source_node = fatso_yaml_mapping_lookup(doc, node, "source");
+  if (source_node) {
+    p->source = fatso_alloc(sizeof(struct fatso_source));
+    r = fatso_source_parse(p->source, doc, source_node, out_error_message);
+    if (r != 0) {
+      fatso_free(p->source);
+      goto out;
+    }
+  }
+
   r = fatso_environment_parse(&p->base_environment, doc, node, out_error_message);
-  if (r != 0) goto out;
+  if (r != 0)
+    goto out;
 
   yaml_node_t* environments_node = fatso_yaml_mapping_lookup(doc, node, "environments");
   if (environments_node && environments_node->type == YAML_SEQUENCE_NODE) {

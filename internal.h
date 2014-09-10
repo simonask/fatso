@@ -94,11 +94,23 @@ void fatso_environment_init(struct fatso_environment*);
 void fatso_environment_destroy(struct fatso_environment*);
 int fatso_environment_parse(struct fatso_environment* env, struct yaml_document_s*, struct yaml_node_s*, char** out_error_message);
 
+struct fatso_source_vtbl;
+
+struct fatso_source {
+  char* name;
+  void* thunk;
+  const struct fatso_source_vtbl* vtbl;
+};
+
+int fatso_source_parse(struct fatso_source*, struct yaml_document_s*, struct yaml_node_s*, char** out_error_message);
+void fatso_source_free(struct fatso_source*);
+
 struct fatso_package {
   char* name;
   struct fatso_version version;
   char* author;
   char* toolchain; // TODO: Autodetect
+  struct fatso_source* source; // TODO: Multiple sources
   struct fatso_environment base_environment;
   FATSO_ARRAY(struct fatso_environment) environments;
 };
