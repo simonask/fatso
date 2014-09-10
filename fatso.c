@@ -52,15 +52,41 @@ fatso_home_directory(struct fatso* f) {
   return f->global_dir;
 }
 
-void fatso_set_working_directory(struct fatso* f, const char* path) {
+void fatso_set_project_directory(struct fatso* f, const char* path) {
   free(f->working_dir);
   f->working_dir = strdup(path);
 }
 
+static char*
+find_fatso_yml(struct fatso* f) {
+  char* r = getwd(NULL);
+  char* check;
+  asprintf(&check, "%s/fatso.yml", r);
+
+  while (!fatso_file_exists(check)) {
+    char* p = strrchr(r, '/');
+    if (p == r || p == NULL) {
+      goto not_found;
+    }
+    *p = '\0';
+    sprintf(check, "%s/fatso.yml", r);
+  }
+  fatso_free(check);
+  return r;
+not_found:
+  fatso_free(r);
+  fatso_free(check);
+  return NULL;
+}
+
 const char*
-fatso_working_directory(struct fatso* f) {
+fatso_project_directory(struct fatso* f) {
   if (!f->working_dir) {
-    f->working_dir = getwd(NULL);
+    f->working_dir = find_fatso_yml(f);
+    if (f->working_dir == NULL) {
+      fprintf(stderr, "fatso.yml not found in this or any parent directory.\n");
+      exit(1);
+    }
   }
   return f->working_dir;
 }

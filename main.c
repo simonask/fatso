@@ -41,7 +41,7 @@ main(int argc, char* const* argv)
         fatso_set_home_directory(&fatso, optarg);
         break;
       case 'C':
-        fatso_set_working_directory(&fatso, optarg);
+        fatso_set_project_directory(&fatso, optarg);
         break;
       default: {
         char* append = strdup(argv[optind]);

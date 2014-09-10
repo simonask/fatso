@@ -27,28 +27,6 @@ fatso_unload_project(struct fatso* f) {
   f->project = NULL;
 }
 
-static char*
-find_fatso_yml(struct fatso* f) {
-  char* r = strdup(fatso_working_directory(f));
-  char* check;
-  asprintf(&check, "%s/fatso.yml", r);
-
-  while (!fatso_file_exists(check)) {
-    char* p = strrchr(r, '/');
-    if (p == r || p == NULL) {
-      goto not_found;
-    }
-    *p = '\0';
-    sprintf(check, "%s/fatso.yml", r);
-  }
-  fatso_free(check);
-  return r;
-not_found:
-  fatso_free(r);
-  fatso_free(check);
-  return NULL;
-}
-
 static int
 parse_fatso_yml(struct fatso_project* p, const char* file, char** out_error_message) {
   int r = 1;
@@ -97,12 +75,7 @@ fatso_load_project(struct fatso* f) {
 
   f->project = fatso_alloc(sizeof(struct fatso_project));
   fatso_project_init(f->project);
-  f->project->path = find_fatso_yml(f);
-
-  if (!f->project->path) {
-    fprintf(stderr, "Error: fatso.yml not found in this or parent directories. Aborting.\n");
-    goto error;
-  }
+  f->project->path = strdup(fatso_project_directory(f));
 
   asprintf(&fatso_yml, "%s/fatso.yml", f->project->path);
   r = parse_fatso_yml(f->project, fatso_yml, &error_message);
