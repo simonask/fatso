@@ -17,6 +17,14 @@ void* fatso_calloc(size_t count, size_t size);
 void* fatso_reallocf(void* ptr, size_t new_size);
 void fatso_free(void* ptr);
 
+#define BLACK   "\033[22;30m"
+#define RED     "\033[01;31m"
+#define GREEN   "\033[01;32m"
+#define MAGENTA "\033[01;35m"
+#define CYAN    "\033[01;36m"
+#define YELLOW  "\033[01;33m"
+#define RESET   "\033[00m"
+
 struct yaml_node_s;
 struct yaml_document_s;
 struct yaml_parser_s;
