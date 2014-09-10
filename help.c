@@ -19,6 +19,7 @@ usage(const char* program_name) {
     "\n\tupgrade      Upgrades dependencies for the current Fatso project. Implies 'sync'."
     "\n\tsync         Get latest package descriptions from online repository."
     "\n\tclean        Clean slate."
+    "\n\tenv          Print the environment used by exec, build, etc."
     "\n\tinfo         Displays info about a package."
     "\n\thelp         Displays this help text."
     "\n\tcflags       Outputs the necessary CFLAGS to build with project dependencies."
