@@ -130,6 +130,11 @@ fatso_process_wait(struct fatso_process* p) {
     }
   }
 
+  p->pid = 0;
+  close(p->out);
+  close(p->err);
+  close(p->in);
+
   int exitstatus = WEXITSTATUS(status);
   return exitstatus;
 }
