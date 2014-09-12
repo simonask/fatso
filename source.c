@@ -87,7 +87,7 @@ fatso_tarball_unpack(struct fatso* f, struct fatso_package* package, struct fats
   }
 
   asprintf(&command, "tar xf \"%s\" -C \"%s\" --strip-components=1", downloaded_file_path, build_path);
-  r = system(command);
+  r = fatso_system(command);
   if (r != 0) {
     goto out;
   }

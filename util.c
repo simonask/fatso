@@ -113,7 +113,7 @@ int
 fatso_download(const char* target_path, const char* uri) {
   char* command = NULL;
   asprintf(&command, "curl -o \"%s\" \"%s\"", target_path, uri);
-  int r = system(command);
+  int r = fatso_system(command);
   fatso_free(command);
   return r;
 }

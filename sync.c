@@ -35,7 +35,7 @@ fatso_sync_packages(struct fatso* f) {
     }
   } else {
     asprintf(&cmd, "git -C %s clone http://github.com/simonask/fatso-packages packages", f->global_dir);
-    r = system(cmd);
+    r = fatso_system(cmd);
     if (r != 0) {
       fprintf(stderr, "git command failed with status %d: %s\nTry to fix it with `fatso doctor` maybe?\n", r, cmd);
       goto out;
