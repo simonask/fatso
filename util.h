@@ -85,8 +85,8 @@ fatso_set_insert(void** inout_data, size_t* inout_num_elements, const void* new_
 
 struct fatso_process;
 struct fatso_process_callbacks {
-  void(*on_stdout)(struct fatso_process*, const char* buffer, size_t len);
-  void(*on_stderr)(struct fatso_process*, const char* buffer, size_t len);
+  void(*on_stdout)(struct fatso_process*, const void* buffer, size_t len);
+  void(*on_stderr)(struct fatso_process*, const void* buffer, size_t len);
 };
 
 struct fatso_process*
@@ -103,6 +103,12 @@ fatso_process_start(struct fatso_process*);
 
 int
 fatso_process_wait(struct fatso_process*);
+
+int
+fatso_process_wait_all(struct fatso_process**, int* out_statuses, size_t n);
+
+int
+fatso_system(const char* command);
 
 ssize_t
 fatso_process_write(struct fatso_process*, const void* buffer, size_t len);
