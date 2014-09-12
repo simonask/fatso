@@ -77,9 +77,9 @@ fatso_process_start(struct fatso_process* p) {
   p->pid = fork();
   if (p->pid == 0) {
     // Child process:
-    dup2(fileno(stdin), in[0]);
-    dup2(fileno(stdout), out[1]);
-    dup2(fileno(stderr), err[1]);
+    dup2(in[0], fileno(stdin));
+    dup2(out[1], fileno(stdout));
+    dup2(err[1], fileno(stderr));
     r = execvp(p->path, p->argv);
     perror("execvp");
     exit(1);
