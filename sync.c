@@ -28,12 +28,7 @@ fatso_sync_packages(struct fatso* f) {
   fprintf(stdout, "Updating Fatso packages...\n");
   if (fatso_directory_exists(packages_git_dir)) {
     const char* path = "git";
-    char *const argv[] = {
-      "-C",
-      packages_dir,
-      "pull",
-      NULL
-    };
+    char *const argv[] = { "-C", packages_dir, "pull", NULL };
     struct fatso_process* p = fatso_process_new(path, argv, NULL, NULL);
     fatso_process_start(p);
     r = fatso_process_wait(p);
