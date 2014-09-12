@@ -13,6 +13,7 @@ SOURCES := \
 	install.c \
 	memory.c \
 	package.c \
+	process.c \
 	project.c \
 	repository.c \
 	source.c \

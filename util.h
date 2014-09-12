@@ -3,6 +3,8 @@
 #define FATSO_UTIL_H_INCLUDED
 
 #include <stddef.h> // size_t
+#include <signal.h> // pid_t
+#include <unistd.h> // ssize_t
 
 #ifdef __cplusplus
 extern "C" {
@@ -79,6 +81,36 @@ fatso_set_insert(void** inout_data, size_t* inout_num_elements, const void* new_
 
 #define fatso_set_insert_v(array, new_element, compare) \
   fatso_set_insert((void**)&((array)->data), &((array)->size), (new_element), sizeof(*new_element), compare)
+
+
+struct fatso_process;
+struct fatso_process_callbacks {
+  void(*on_stdout)(struct fatso_process*, const char* buffer, size_t len);
+  void(*on_stderr)(struct fatso_process*, const char* buffer, size_t len);
+};
+
+struct fatso_process*
+fatso_process_new(const char* path, char *const argv[], const struct fatso_process_callbacks* callbacks, void* userdata);
+
+void
+fatso_process_free(struct fatso_process*);
+
+void*
+fatso_process_userdata(struct fatso_process*);
+
+void
+fatso_process_start(struct fatso_process*);
+
+int
+fatso_process_wait(struct fatso_process*);
+
+ssize_t
+fatso_process_write(struct fatso_process*, const void* buffer, size_t len);
+
+int
+fatso_process_kill(struct fatso_process*, pid_t sig);
+
+
 
 #ifdef __cplusplus
 }
