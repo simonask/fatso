@@ -26,11 +26,16 @@ fatso_process_new(
 ) {
   struct fatso_process* p = fatso_alloc(sizeof(struct fatso_process));
   p->path = strdup(path);
+
+  size_t idx;
+  p->argv = fatso_alloc(sizeof(char*));
+  p->argv[0] = strdup(path);
   for (char* const* a = argv; *a; ++a) {
-    size_t idx = a - argv;
-    p->argv = fatso_reallocf(p->argv, (idx+1) * sizeof(char*));
-    p->argv[idx] = strdup(*a);
+    idx = a - argv;
+    p->argv = fatso_reallocf(p->argv, (idx+3) * sizeof(char*));
+    p->argv[idx+1] = strdup(*a);
   }
+
   p->userdata = userdata;
   p->callbacks = callbacks;
   p->pid = 0;
