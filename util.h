@@ -90,7 +90,7 @@ struct fatso_process_callbacks {
 };
 
 struct fatso_process*
-fatso_process_new(const char* path, char *const argv[], const struct fatso_process_callbacks* callbacks, void* userdata);
+fatso_process_new(const char* path, const char *const argv[], const struct fatso_process_callbacks* callbacks, void* userdata);
 
 void
 fatso_process_free(struct fatso_process*);
@@ -109,6 +109,9 @@ fatso_process_wait_all(struct fatso_process**, int* out_statuses, size_t n);
 
 int
 fatso_system(const char* command);
+
+int
+fatso_system_with_callbacks(const char* command, const struct fatso_process_callbacks* callbacks);
 
 ssize_t
 fatso_process_write(struct fatso_process*, const void* buffer, size_t len);
