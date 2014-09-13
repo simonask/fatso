@@ -8,6 +8,7 @@
 #include <sys/select.h> // select etc.
 #include <errno.h>
 #include <fcntl.h>
+#include <signal.h>
 
 struct fatso_process {
   char* path;
@@ -23,14 +24,14 @@ struct fatso_process {
 struct fatso_process*
 fatso_process_new(
   const char* path,
-  char* const argv[],
+  const char* const argv[],
   const struct fatso_process_callbacks* callbacks,
   void* userdata
 ) {
   struct fatso_process* p = fatso_alloc(sizeof(struct fatso_process));
   p->path = strdup(path);
 
-  for (char* const* a = argv; *a; ++a) {
+  for (const char* const* a = argv; *a; ++a) {
     char* str = strdup(*a);
     fatso_push_back_v(&p->args, &str);
   }
@@ -64,10 +65,35 @@ fatso_process_userdata(struct fatso_process* p) {
   return p->userdata;
 }
 
-void
-fatso_process_start(struct fatso_process* p) {
+struct signal_backup {
+  struct sigaction intr;
+  struct sigaction quit;
+  sigset_t omask;
+};
+
+static void
+restore_signals(struct signal_backup* sigback) {
+  sigaction(SIGINT, &sigback->intr, NULL);
+  sigaction(SIGQUIT, &sigback->quit, NULL);
+  sigprocmask(SIG_SETMASK, &sigback->omask, NULL);
+}
+
+static void
+process_start(struct fatso_process* p, struct signal_backup* sigback) {
   if (p->pid != 0) {
     return;
+  }
+
+  // Block some signals:
+  struct sigaction sa;
+  if (sigback) {
+    sa.sa_handler = SIG_IGN;
+    sa.sa_flags = 0;
+    sigemptyset(&sa.sa_mask);
+    sigaction(SIGINT, &sa, &sigback->intr);
+    sigaction(SIGQUIT, &sa, &sigback->quit);
+    sigaddset(&sa.sa_mask, SIGCHLD);
+    sigprocmask(SIG_BLOCK, &sa.sa_mask, &sigback->omask);
   }
 
   int out[2];
@@ -87,15 +113,24 @@ fatso_process_start(struct fatso_process* p) {
 
   if (p->pid == 0) {
     // Child process:
+
+    if (sigback) {
+      // Restore the signals:
+      restore_signals(sigback);
+    }
+
+    // Replace standard I/O:
     close(in[1]);
     close(out[0]);
     close(err[0]);
     dup2(in[0], fileno(stdin));
     dup2(out[1], fileno(stdout));
     dup2(err[1], fileno(stderr));
+
+    // Take off:
     r = execvp(p->path, p->args.data);
     perror("execvp");
-    exit(1);
+    exit(127);
   } else if (p->pid < 0) {
     // Error:
     perror("fork");
@@ -115,6 +150,11 @@ fatso_process_start(struct fatso_process* p) {
     if (r != 0)
       perror("fcntl");
   }
+}
+
+void
+fatso_process_start(struct fatso_process* p) {
+  process_start(p, NULL);
 }
 
 int
@@ -153,7 +193,7 @@ fatso_process_wait_all(
         if (p->err > maxfd) maxfd = p->err;
       }
     }
-    if (maxfd <= 0)
+    if (maxfd < 0)
       break;
 
     int numready = select(maxfd + 1, &fds, NULL, &efds, NULL);
@@ -216,7 +256,9 @@ fatso_process_wait_all(
       if (p->pid > 0) {
         int wstatus;
         r = waitpid(p->pid, &wstatus, WNOHANG);
-        if (WIFEXITED(wstatus)) {
+        if (r < 0) {
+          perror("waitpid");
+        } else if (r > 0) {
           p->pid = 0;
           close(p->out);
           close(p->err);
@@ -255,51 +297,24 @@ fatso_system(const char* command) {
     .on_stdout = forward_stdout,
     .on_stderr = forward_stderr,
   };
+  return fatso_system_with_callbacks(command, &standard_callbacks);
+}
 
-  char* path = NULL;
-  FATSO_ARRAY(char*) args = {0};
+int
+fatso_system_with_callbacks(const char* command, const struct fatso_process_callbacks* callbacks) {
+  const char* new_argv[] = {
+    "sh",
+    "-c",
+    command,
+    NULL
+  };
 
-  const char* p0 = command;
-  while (*p0) {
-    const char* p1 = strchr(p0, ' ');
-    size_t len;
-    size_t end;
-    if (p1) {
-      len = p1 - p0;
-      end = len + 1;
-    } else {
-      len = strlen(p0);
-      end = len;
-    }
-    const char* s0 = p0;
-    size_t slen = len;
-
-    if (len > 2) {
-      // Strip leading and trailing quotes.
-      if ((s0[0] == '"' || s0[0] == '\'') && s0[len-1] == s0[0]) {
-        ++s0;
-        slen -= 2;
-      }
-    }
-
-    char* component = strndup(s0, slen);
-    fatso_push_back_v(&args, &component);
-    p0 = p0 + end;
-  }
-  char* null = NULL;
-  fatso_push_back_v(&args, &null);
-
-  path = strdup(args.data[0]);
-
-  struct fatso_process* process = fatso_process_new(path, args.data, &standard_callbacks, NULL);
-  fatso_process_start(process);
+  struct fatso_process* process = fatso_process_new("/bin/sh", new_argv, callbacks, NULL);
+  struct signal_backup sigback;
+  process_start(process, &sigback);
   int r = fatso_process_wait(process);
+  restore_signals(&sigback);
   fatso_process_free(process);
-  for (size_t i = 0; i < args.size; ++i) {
-    fatso_free(args.data[i]);
-  }
-  fatso_free(args.data);
-  fatso_free(path);
   return r;
 }
 
