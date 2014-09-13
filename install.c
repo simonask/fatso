@@ -92,16 +92,15 @@ out:
 }
 
 int
-fatso_package_build(struct fatso* f, struct fatso_package* p) {
+fatso_package_build(struct fatso* f, struct fatso_package* p, const struct fatso_toolchain* toolchain) {
   print_install_progress(f, p, INSTALL_STATUS_WORKING, "Building...");
-  return 0;
+  return toolchain->build(f, p);
 }
 
 int
-fatso_package_install_products(struct fatso* f, struct fatso_package* p) {
-  print_install_progress(f, p, INSTALL_STATUS_WORKING, "Configuring...");
+fatso_package_install_products(struct fatso* f, struct fatso_package* p, const struct fatso_toolchain* toolchain) {
   print_install_progress(f, p, INSTALL_STATUS_WORKING, "Installing...");
-  return 0;
+  return toolchain->install(f, p);
 }
 
 int
@@ -112,11 +111,18 @@ fatso_package_install(struct fatso* f, struct fatso_package* p) {
   if (r != 0)
     goto out;
 
-  r = fatso_package_build(f, p);
+  struct fatso_toolchain toolchain;
+  r = fatso_guess_toolchain(f, p, &toolchain);
+  if (r != 0) {
+    print_install_progress(f, p, INSTALL_STATUS_ERROR, "Error guessing toolchain.\n");
+    goto out;
+  }
+
+  r = fatso_package_build(f, p, &toolchain);
   if (r != 0)
     return r;
 
-  r = fatso_package_install_products(f, p);
+  r = fatso_package_install_products(f, p, &toolchain);
   if (r != 0)
     return r;
 

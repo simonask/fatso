@@ -133,3 +133,10 @@ fatso_package_build_path(struct fatso* f, struct fatso_package* p) {
   asprintf(&path, "%s/.fatso/build/%s/%s", fatso_project_directory(f), p->name, fatso_version_string(&p->version));
   return path;
 }
+
+char*
+fatso_package_install_prefix(struct fatso* f, struct fatso_package* p) {
+  char* path;
+  asprintf(&path, "%s/.fatso", fatso_project_directory(f));
+  return path;
+}

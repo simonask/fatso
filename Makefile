@@ -18,6 +18,7 @@ SOURCES := \
 	repository.c \
 	source.c \
 	sync.c \
+	toolchain.c \
 	util.c \
 	version.c \
 	yaml.c \
