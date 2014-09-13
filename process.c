@@ -256,9 +256,10 @@ fatso_process_wait_all(
       if (p->pid > 0) {
         int wstatus;
         r = waitpid(p->pid, &wstatus, WNOHANG);
-        if (r < 0) {
-          perror("waitpid");
-        } else if (r > 0) {
+        if (r != 0) {
+          if (r < 0) {
+            perror("waitpid");
+          }
           p->pid = 0;
           close(p->out);
           close(p->err);
