@@ -7,7 +7,7 @@ can build and link against them with zero system dependencies.
 
 Fatso supports the following build systems:
 
-- Autotools (TODO)
+- Autotools
 - CMake (TODO)
 - Plain GNU Make (TODO)
 - SCons (TODO)
