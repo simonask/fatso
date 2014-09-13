@@ -5,7 +5,7 @@
 #include <getopt.h>
 #include <unistd.h> // getwd
 #include <stdio.h>
-#include <stdlib.h> // exit
+#include <stdlib.h> // exit, realpath
 #include <string.h>
 #include <stdarg.h>
 #include <sys/stat.h> // mkdir
@@ -27,7 +27,7 @@ fatso_init(struct fatso* f, const char* program_name) {
 
 void fatso_set_home_directory(struct fatso* f, const char* path) {
   free(f->global_dir);
-  f->global_dir = strdup(path);
+  f->global_dir = realpath(path, NULL);
 }
 
 const char*
@@ -54,7 +54,7 @@ fatso_home_directory(struct fatso* f) {
 
 void fatso_set_project_directory(struct fatso* f, const char* path) {
   free(f->working_dir);
-  f->working_dir = strdup(path);
+  f->working_dir = realpath(path, NULL);
 }
 
 static char*
