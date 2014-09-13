@@ -98,7 +98,7 @@ out:
   fatso_free(source_dir);
   fatso_free(downloaded_file_path);
   fatso_free(build_path);
-  return 1;
+  return r;
 }
 
 static const struct fatso_source_vtbl tarball_source_vtbl = {
