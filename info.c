@@ -27,8 +27,8 @@ display_info_for_package(const struct fatso_package* p) {
 
   printf("dependencies:\n");
   // TODO: Use consolidated dependencies.
-  for (size_t i = 0; i < p->base_environment.dependencies.size; ++i) {
-    const struct fatso_dependency* dep = &p->base_environment.dependencies.data[i];
+  for (size_t i = 0; i < p->base_configuration.dependencies.size; ++i) {
+    const struct fatso_dependency* dep = &p->base_configuration.dependencies.data[i];
     printf("  %s", dep->name);
     if (dep->constraints.size) {
       printf(" (");
@@ -47,8 +47,8 @@ display_info_for_package(const struct fatso_package* p) {
 
   printf("defines:\n");
   // TODO: Use consolidated defines.
-  for (size_t i = 0; i < p->base_environment.defines.size; ++i) {
-    const struct fatso_define* def = &p->base_environment.defines.data[i];
+  for (size_t i = 0; i < p->base_configuration.defines.size; ++i) {
+    const struct fatso_define* def = &p->base_configuration.defines.data[i];
     printf("  %s: %s\n", def->key, def->value);
   }
 }

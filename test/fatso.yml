@@ -9,7 +9,7 @@ dependencies:
 defines:
   FATSO: 1
 
-environments:
+configurations:
   development:
     dependencies:
     - ['lldb']

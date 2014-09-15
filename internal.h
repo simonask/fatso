@@ -93,15 +93,15 @@ struct fatso_define {
 void fatso_define_init(struct fatso_define*, const char* key, const char* value);
 void fatso_define_destroy(struct fatso_define*);
 
-struct fatso_environment {
+struct fatso_configuration {
   char* name;
   FATSO_ARRAY(struct fatso_dependency) dependencies;
   FATSO_ARRAY(struct fatso_define) defines;
 };
 
-void fatso_environment_init(struct fatso_environment*);
-void fatso_environment_destroy(struct fatso_environment*);
-int fatso_environment_parse(struct fatso_environment* env, struct yaml_document_s*, struct yaml_node_s*, char** out_error_message);
+void fatso_configuration_init(struct fatso_configuration*);
+void fatso_configuration_destroy(struct fatso_configuration*);
+int fatso_configuration_parse(struct fatso_configuration* env, struct yaml_document_s*, struct yaml_node_s*, char** out_error_message);
 
 struct fatso_source_vtbl;
 
@@ -122,8 +122,8 @@ struct fatso_package {
   char* author;
   char* toolchain; // TODO: Autodetect
   struct fatso_source* source; // TODO: Multiple sources
-  struct fatso_environment base_environment;
-  FATSO_ARRAY(struct fatso_environment) environments;
+  struct fatso_configuration base_configuration;
+  FATSO_ARRAY(struct fatso_configuration) configurations;
 };
 
 void fatso_package_init(struct fatso_package*);

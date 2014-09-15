@@ -6,7 +6,7 @@ HEADERS := fatso.h util.h internal.h
 SOURCES := \
 	define.c \
 	dependency.c \
-	environment.c \
+	configuration.c \
 	fatso.c \
 	help.c \
 	info.c \

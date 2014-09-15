@@ -21,7 +21,7 @@ configure_and_make(struct fatso* f, struct fatso_package* p) {
   char* install_prefix = fatso_package_install_prefix(f, p);
   char* original_wd = getwd(NULL);
 
-  // TODO: Append environment.
+  // TODO: Append configuration.
 
   char* cmd;
   asprintf(&cmd, "%s/configure --prefix=%s", build_path, install_prefix);

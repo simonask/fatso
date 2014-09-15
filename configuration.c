@@ -5,12 +5,12 @@
 #include <yaml.h>
 
 void
-fatso_environment_init(struct fatso_environment* e) {
+fatso_configuration_init(struct fatso_configuration* e) {
   memset(e, 0, sizeof(*e));
 }
 
 void
-fatso_environment_destroy(struct fatso_environment* e) {
+fatso_configuration_destroy(struct fatso_configuration* e) {
   fatso_free(e->name);
   for (size_t i = 0; i < e->dependencies.size; ++i) {
     fatso_dependency_destroy(&e->dependencies.data[i]);
@@ -24,7 +24,7 @@ fatso_environment_destroy(struct fatso_environment* e) {
 }
 
 int
-fatso_environment_parse(struct fatso_environment* e, struct yaml_document_s* doc, struct yaml_node_s* node, char** out_error_message) {
+fatso_configuration_parse(struct fatso_configuration* e, struct yaml_document_s* doc, struct yaml_node_s* node, char** out_error_message) {
   int r = 0;
 
   yaml_node_t* dependencies = fatso_yaml_mapping_lookup(doc, node, "dependencies");

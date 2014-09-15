@@ -344,15 +344,15 @@ fatso_dependency_graph_add_dependencies_from_package(
   struct fatso_package* package
 ) {
   debugdep("Adding dependencies from package '%s %s' to graph %p.", package->name, fatso_version_string(&package->version), graph);
-  for (size_t i = 0; i < package->base_environment.dependencies.size; ++i) {
-    struct fatso_dependency* dep = &package->base_environment.dependencies.data[i];
+  for (size_t i = 0; i < package->base_configuration.dependencies.size; ++i) {
+    struct fatso_dependency* dep = &package->base_configuration.dependencies.data[i];
     int r = fatso_dependency_graph_add_open_set(graph, dep, package);
     if (r != FATSO_DEPENDENCY_OK) {
       return r;
     }
   }
 
-  // TODO: Add dependencies from additional environments.
+  // TODO: Add dependencies from additional configurations.
   return FATSO_DEPENDENCY_OK;
 }
 
@@ -481,8 +481,8 @@ toposort_dependencies_r(
   if (seenp == NULL) {
     fatso_set_insert_v(seen, &package->name, compare_strings);
 
-    for (size_t i = 0; i < package->base_environment.dependencies.size; ++i) {
-      struct fatso_dependency* dep = &package->base_environment.dependencies.data[i];
+    for (size_t i = 0; i < package->base_configuration.dependencies.size; ++i) {
+      struct fatso_dependency* dep = &package->base_configuration.dependencies.data[i];
       struct fatso_package** pp = fatso_bsearch_v(dep->name, &graph->closed_set, compare_string_with_package_pointer);
       if (pp) {
         struct fatso_package* p = *pp;
@@ -491,7 +491,7 @@ toposort_dependencies_r(
         // ERROR?! Dependency graph doesn't contain a package requested by dependency.
       }
     }
-    // TODO: Include auxillary environments.
+    // TODO: Include auxillary configurations.
 
     if (package != graph->root) {
       fatso_push_back_v(out_list, &package);
@@ -533,14 +533,14 @@ fatso_dependency_graph_get_conflicts(
       struct fatso_dependency* dep = NULL;
 
       // Find the dependency actually requested by the package.
-      for (size_t u = 0; u < package->base_environment.dependencies.size; ++u) {
-        if (strcmp(own_dep->name, package->base_environment.dependencies.data[u].name) == 0) {
-          dep = &package->base_environment.dependencies.data[u];
+      for (size_t u = 0; u < package->base_configuration.dependencies.size; ++u) {
+        if (strcmp(own_dep->name, package->base_configuration.dependencies.data[u].name) == 0) {
+          dep = &package->base_configuration.dependencies.data[u];
           break;
         }
       }
 
-      if (dep == NULL) continue; // TODO: This should go away once we're search auxillary environments.
+      if (dep == NULL) continue; // TODO: This should go away once we're search auxillary configurations.
 
       struct fatso_dependency_package_pair pair = {
         .package = plist->packages.data[j],

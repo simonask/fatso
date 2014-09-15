@@ -16,11 +16,11 @@ fatso_package_destroy(struct fatso_package* p) {
   fatso_version_destroy(&p->version);
   fatso_free(p->author);
   fatso_free(p->toolchain);
-  fatso_environment_destroy(&p->base_environment);
-  for (size_t i = 0; i < p->environments.size; ++i) {
-    fatso_environment_destroy(&p->environments.data[i]);
+  fatso_configuration_destroy(&p->base_configuration);
+  for (size_t i = 0; i < p->configurations.size; ++i) {
+    fatso_configuration_destroy(&p->configurations.data[i]);
   }
-  fatso_free(p->environments.data);
+  fatso_free(p->configurations.data);
   memset(p, 0, sizeof(*p));
 }
 
@@ -59,17 +59,17 @@ int fatso_package_parse(struct fatso_package* p, struct yaml_document_s* doc, st
     }
   }
 
-  r = fatso_environment_parse(&p->base_environment, doc, node, out_error_message);
+  r = fatso_configuration_parse(&p->base_configuration, doc, node, out_error_message);
   if (r != 0)
     goto out;
 
-  yaml_node_t* environments_node = fatso_yaml_mapping_lookup(doc, node, "environments");
-  if (environments_node && environments_node->type == YAML_SEQUENCE_NODE) {
-    size_t len = fatso_yaml_sequence_length(environments_node);
-    p->environments.size = len;
-    p->environments.data = fatso_calloc(len, sizeof(struct fatso_environment));
+  yaml_node_t* configurations_node = fatso_yaml_mapping_lookup(doc, node, "configurations");
+  if (configurations_node && configurations_node->type == YAML_SEQUENCE_NODE) {
+    size_t len = fatso_yaml_sequence_length(configurations_node);
+    p->configurations.size = len;
+    p->configurations.data = fatso_calloc(len, sizeof(struct fatso_configuration));
     for (size_t i = 0; i < len; ++i) {
-      r = fatso_environment_parse(&p->environments.data[i], doc, fatso_yaml_sequence_lookup(doc, environments_node, i), out_error_message);
+      r = fatso_configuration_parse(&p->configurations.data[i], doc, fatso_yaml_sequence_lookup(doc, configurations_node, i), out_error_message);
       if (r != 0)
         goto out;
     }
