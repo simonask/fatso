@@ -1,7 +1,7 @@
 #include "fatso.h"
 
 #include <stdio.h>
-#include <string.h>
+#include <string.h> // strcmp
 
 static void
 usage(const char* program_name) {

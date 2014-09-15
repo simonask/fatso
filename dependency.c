@@ -1,6 +1,5 @@
 #include "internal.h"
 
-#include <stdlib.h> // free
 #include <yaml.h>
 
 #if defined(DEBUG_DEPENDENCY_RESOLUTION)

@@ -2,7 +2,6 @@
 #include "internal.h"
 
 #include <unistd.h> // getwd, chdir
-#include <stdlib.h> // system
 
 static void ignore_output(struct fatso_process* p, const void* buffer, size_t len) {}
 static void forward_stderr(struct fatso_process* p, const void* buffer, size_t len) {

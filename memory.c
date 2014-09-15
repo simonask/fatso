@@ -1,7 +1,7 @@
 #include "internal.h"
 
-#include <stdlib.h>
-#include <stdio.h>
+#include <stdlib.h> // allocators
+#include <stdio.h>  // perror
 
 void*
 fatso_alloc(size_t size) {

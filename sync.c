@@ -4,7 +4,6 @@
 
 #include <stdio.h> // asprintf, fprintf, perror
 #include <sys/stat.h> // mkdir
-#include <stdlib.h> // system
 
 int
 fatso_sync_packages(struct fatso* f) {

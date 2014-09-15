@@ -1,7 +1,6 @@
 #include "internal.h"
 
 #include <string.h> // memset
-#include <stdlib.h> // free
 #include <yaml.h>
 
 void

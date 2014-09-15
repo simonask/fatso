@@ -4,7 +4,6 @@
 
 #include <stdio.h>
 #include <stdarg.h>
-#include <string.h> // strlen
 
 int
 fatso_install(struct fatso* f, int argc, char* const* argv) {

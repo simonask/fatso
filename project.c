@@ -4,8 +4,6 @@
 
 #include <yaml.h>
 #include <errno.h>
-#include <stdbool.h>
-#include <assert.h>
 #include <ctype.h> // isspace
 
 void fatso_project_init(struct fatso_project* p) {
