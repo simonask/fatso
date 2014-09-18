@@ -66,6 +66,7 @@ main(int argc, char* const* argv)
     {"install", fatso_install},
     {"upgrade", fatso_upgrade},
     {"env", fatso_env},
+    {"exec", fatso_exec},
     {"sync", fatso_sync},
     {"info", fatso_info},
     {"help", fatso_help},

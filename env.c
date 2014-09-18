@@ -86,11 +86,13 @@ fatso_load_environment(struct fatso* f) {
   if (r != 0)
     goto out;
 
-  for (size_t i = 0; i < f->project->install_order.size; ++i) {
-    struct fatso_package* p = f->project->install_order.data[i];
-    r = fatso_package_append_environment(f, p);
-    if (r != 0) {
-      goto out;
+  if (f->project) {
+    for (size_t i = 0; i < f->project->install_order.size; ++i) {
+      struct fatso_package* p = f->project->install_order.data[i];
+      r = fatso_package_append_environment(f, p);
+      if (r != 0) {
+        goto out;
+      }
     }
   }
 

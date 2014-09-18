@@ -8,6 +8,7 @@ SOURCES := \
 	dependency.c \
 	configuration.c \
 	env.c \
+	exec.c \
 	fatso.c \
 	help.c \
 	info.c \
