@@ -19,11 +19,26 @@ prepend_env_pathlist(const char* name, const char* value) {
   }
 }
 
+static void
+append_env_words(const char* name, const char* value) {
+  char* current_value = getenv(name);
+  if (current_value) {
+    char* new_value;
+    asprintf(&new_value, "%s %s", current_value, value);
+    setenv(name, new_value, 1);
+    fatso_free(new_value);
+  } else {
+    setenv(name, value, 1);
+  }
+}
+
 int
 fatso_append_base_environment(struct fatso* f) {
   const char* project_dir = fatso_project_directory(f);
   char* bin_path = NULL;
   char* lib_path = NULL;
+  char* cflags = NULL;
+  char* ldflags = NULL;
 
   // PATH
   asprintf(&bin_path, "%s/.fatso/bin", project_dir);
@@ -40,8 +55,20 @@ fatso_append_base_environment(struct fatso* f) {
   #warning Don't know how to inform environment of lib path on this platform. :(
 #endif
 
+  // CFLAGS
+  asprintf(&cflags, "-I%s/.fatso/include", project_dir);
+  append_env_words("CFLAGS", cflags);
+  append_env_words("CXXFLAGS", cflags);
+
+  // LDFLAGS
+  asprintf(&ldflags, "-L%s/.fatso/lib", project_dir);
+  append_env_words("LDFLAGS", ldflags);
+
+
   fatso_free(bin_path);
   fatso_free(lib_path);
+  fatso_free(cflags);
+  fatso_free(ldflags);
   return 0;
 }
 
