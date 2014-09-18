@@ -45,6 +45,7 @@ const char* fatso_project_path(struct fatso*);
 int fatso_install(struct fatso*, int argc, char* const* argv);
 int fatso_upgrade(struct fatso*, int argc, char* const* argv);
 int fatso_sync(struct fatso*, int argc, char* const* argv);
+int fatso_env(struct fatso*, int argc, char* const* argv);
 int fatso_help(struct fatso*, int argc, char* const* argv);
 int fatso_info(struct fatso*, int argc, char* const* argv);
 

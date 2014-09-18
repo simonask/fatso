@@ -65,6 +65,7 @@ main(int argc, char* const* argv)
   static const named_command_t named_commands[] = {
     {"install", fatso_install},
     {"upgrade", fatso_upgrade},
+    {"env", fatso_env},
     {"sync", fatso_sync},
     {"info", fatso_info},
     {"help", fatso_help},

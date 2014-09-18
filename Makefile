@@ -7,6 +7,7 @@ SOURCES := \
 	define.c \
 	dependency.c \
 	configuration.c \
+	env.c \
 	fatso.c \
 	help.c \
 	info.c \
