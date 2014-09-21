@@ -1,6 +1,7 @@
 #include "test.h"
 #include "../internal.h"
 #include "../util.h"
+#include "../fatso.h"
 
 static void test_fatso_version_from_string() {
   struct fatso_version ver;
@@ -188,6 +189,16 @@ test_fatso_version_matches_constraint() {
   }
 }
 
+static void
+test_fatso_exec() {
+  setenv("FOO", "test", 1);
+  char* output;
+  size_t output_len;
+  int r = fatso_system_with_capture("echo $FOO", &output, &output_len);
+  ASSERT(r == 0);
+  ASSERT(strncmp("test\n", output, output_len) == 0);
+}
+
 int main(int argc, char const *argv[])
 {
   TEST(test_fatso_version_from_string);
@@ -196,5 +207,6 @@ int main(int argc, char const *argv[])
   TEST(test_fatso_set_insert);
   TEST(test_fatso_multiset_insert);
   TEST(test_fatso_version_matches_constraint);
+  TEST(test_fatso_exec);
   return g_any_test_failed;
 }

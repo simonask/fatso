@@ -122,6 +122,12 @@ fatso_system(const char* command);
 int
 fatso_system_with_callbacks(const char* command, const struct fatso_process_callbacks* callbacks);
 
+int
+fatso_system_with_capture(const char* command, char** output, size_t* output_length);
+
+int
+fatso_system_with_split_capture(const char* command, char** stdout_output, size_t* stdout_length, char** stderr_output, size_t* stderr_length);
+
 ssize_t
 fatso_process_write(struct fatso_process*, const void* buffer, size_t len);
 

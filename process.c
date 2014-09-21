@@ -319,3 +319,45 @@ fatso_system_with_callbacks(const char* command, const struct fatso_process_call
   return r;
 }
 
+struct capture_userdata {
+  FATSO_ARRAY(char) buffer;
+};
+
+static void
+capture_append_buffer(struct fatso_process* p, const void* buffer, size_t len) {
+  struct capture_userdata* ud = fatso_process_userdata(p);
+  fatso_append_v(&ud->buffer, buffer, len);
+}
+
+int
+fatso_system_with_capture(const char* command, char** output, size_t* output_length) {
+  const char* new_argv[] = {
+    "sh",
+    "-c",
+    command,
+    NULL
+  };
+
+  struct capture_userdata userdata = {{0}};
+
+  static const struct fatso_process_callbacks callbacks = {
+    .on_stdout = capture_append_buffer,
+    .on_stderr = capture_append_buffer,
+  };
+
+  struct fatso_process* process = fatso_process_new("/bin/sh", new_argv, &callbacks, &userdata);
+  struct signal_backup sigback;
+  process_start(process, &sigback);
+  int r = fatso_process_wait(process);
+  restore_signals(&sigback);
+  fatso_process_free(process);
+
+  char nul = 0;
+  fatso_push_back_v(&userdata.buffer, &nul);
+
+  *output = userdata.buffer.data;
+  *output_length = userdata.buffer.size;
+
+  return r;
+}
+
