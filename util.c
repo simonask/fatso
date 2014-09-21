@@ -131,6 +131,18 @@ fatso_push_back_(void** inout_data, size_t* inout_num_elements, const void* new_
 }
 
 void*
+fatso_append_(void** inout_data, size_t* inout_num_elements, const void* elements, size_t element_size, size_t num_elements) {
+  size_t old_size = *inout_num_elements;
+  size_t new_size = old_size + num_elements;
+  byte* new_data = fatso_reallocf(*inout_data, new_size * element_size);
+  *inout_data = new_data;
+  *inout_num_elements = new_size;
+  byte* ptr = new_data + (old_size * element_size);
+  memcpy(ptr, elements, element_size * num_elements);
+  return ptr;
+}
+
+void*
 fatso_lower_bound(const void* key, void* base, size_t nel, size_t width, int(*compare)(const void*, const void*)) {
   int r;
   return fatso_lower_bound_cmp(key, base, nel, width, compare, &r);

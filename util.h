@@ -37,6 +37,8 @@ fatso_run(const char* command);
 int
 fatso_download(const char* target_path, const char* uri);
 
+#define FATSO_ARRAY(TYPE) struct { TYPE* data; size_t size; }
+
 /*
   fatso_lower_bound is identical to bsearch, except it returns a pointer to the first element that's *not* less than key,
   instead of NULL when the key is not found.
@@ -56,13 +58,20 @@ fatso_bsearch(const void* key, void* base, size_t nel, size_t width, int(*compar
 void*
 fatso_push_back_(void** inout_data, size_t* inout_num_elements, const void* new_element, size_t element_size);
 
-#define FATSO_ARRAY(TYPE) struct { TYPE* data; size_t size; }
-
 #define fatso_push_back(data, size, new_element, element_size) \
   fatso_push_back_((void**)(data), size, new_element, element_size)
 
 #define fatso_push_back_v(array, new_element) \
   fatso_push_back(&((array)->data), &((array)->size), (new_element), sizeof(*new_element))
+
+void*
+fatso_append_(void** inout_data, size_t* inout_num_elements, const void* new_elements, size_t element_size, size_t num_elements);
+
+#define fatso_append(data, size, elements, element_size, num_elements) \
+  fatso_append_((void**)(data), size, elements, element_size, num_elements)
+
+#define fatso_append_v(array, elements, num_elements) \
+  fatso_append(&((array)->data), &((array)->size), (elements), sizeof(*(array)->data), num_elements)
 
 int
 fatso_erase(void** inout_data, size_t* inout_num_elements, size_t idx, size_t width);
