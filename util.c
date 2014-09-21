@@ -120,14 +120,7 @@ fatso_download(const char* target_path, const char* uri) {
 
 void*
 fatso_push_back_(void** inout_data, size_t* inout_num_elements, const void* new_element, size_t element_size) {
-  size_t old_size = *inout_num_elements;
-  size_t new_size = old_size + 1;
-  byte* new_data = fatso_reallocf(*inout_data, new_size * element_size);
-  *inout_data = new_data;
-  *inout_num_elements = new_size;
-  byte* ptr = new_data + (old_size * element_size);
-  memcpy(ptr, new_element, element_size);
-  return ptr;
+  return fatso_append_(inout_data, inout_num_elements, new_element, element_size, 1);
 }
 
 void*

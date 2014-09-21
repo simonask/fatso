@@ -60,6 +60,19 @@ static void test_fatso_version_compare() {
   }
 }
 
+static void
+test_fatso_append() {
+  FATSO_ARRAY(int) a = {0};
+  for (int i = 0; i < 5; ++i) {
+    fatso_push_back_v(&a, &i);
+  }
+  const int v[] = {5, 6, 7, 8, 9};
+  fatso_append_v(&a, v, 5);
+  for (int i = 0; i < 10; ++i) {
+    ASSERT_FMT(a.data[i] == i, "Element %d: expected %d to equal %d", i, a.data[i], i);
+  }
+}
+
 static int compare_ints(const void* a, const void* b) {
   return (*(const int*)a) - (*(const int*)b);
 }
@@ -203,6 +216,7 @@ int main(int argc, char const *argv[])
 {
   TEST(test_fatso_version_from_string);
   TEST(test_fatso_version_compare);
+  TEST(test_fatso_append);
   TEST(test_fatso_lower_bound);
   TEST(test_fatso_set_insert);
   TEST(test_fatso_multiset_insert);
