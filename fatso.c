@@ -23,6 +23,7 @@ fatso_init(struct fatso* f, const char* program_name) {
   f->project = NULL;
   f->command = NULL;
   f->global_dir = NULL;
+  f->working_dir = NULL;
   return 0;
 }
 
