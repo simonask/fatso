@@ -6,6 +6,7 @@
 #include <unistd.h> // fork
 #include <stdlib.h> // exit
 #include <sys/select.h> // select etc.
+#include <sys/wait.h> // waitpid
 #include <errno.h>
 #include <fcntl.h>
 #include <signal.h>

@@ -15,6 +15,7 @@ fatso_version_requirement_to_string(enum fatso_version_requirement req) {
     case FATSO_VERSION_GT: return ">";
     case FATSO_VERSION_GE: return ">=";
     case FATSO_VERSION_APPROXIMATELY: return "~>";
+    default: return "";
   }
 }
 

@@ -25,12 +25,22 @@ fatso_calloc(size_t count, size_t size) {
 void*
 fatso_reallocf(void* ptr, size_t size) {
   if (size) {
+    #if defined(__linux)
+    void* new_ptr = realloc(ptr, size);
+    if (!new_ptr) {
+      free(ptr);
+      perror("realloc");
+      abort();
+    }
+    return new_ptr;
+    #else
     ptr = reallocf(ptr, size);
     if (!ptr) {
       perror("reallocf");
       abort();
     }
     return ptr;
+    #endif
   } else {
     fatso_free(ptr);
     return NULL;

@@ -2,6 +2,7 @@
 #include "internal.h"
 
 #include <unistd.h> // getwd, chdir
+#include <sys/param.h> // MAXPATHLEN
 
 static void ignore_output(struct fatso_process* p, const void* buffer, size_t len) {}
 static void forward_stderr(struct fatso_process* p, const void* buffer, size_t len) {
@@ -18,7 +19,8 @@ configure_and_make(struct fatso* f, struct fatso_package* p) {
   int r, r2;
   char* build_path = fatso_package_build_path(f, p);
   char* install_prefix = fatso_package_install_prefix(f, p);
-  char* original_wd = getwd(NULL);
+  char* original_wd = fatso_alloc(MAXPATHLEN);
+  original_wd = getcwd(original_wd, MAXPATHLEN);
 
   // TODO: Append configuration.
 
@@ -58,7 +60,8 @@ out:
 static int
 make_install(struct fatso* f, struct fatso_package* p) {
   int r, r2;
-  char* original_wd = getwd(NULL);
+  char* original_wd = fatso_alloc(MAXPATHLEN);
+  original_wd = getcwd(original_wd, MAXPATHLEN);
   char* build_path = fatso_package_build_path(f, p);
   r = chdir(build_path);
   if (r != 0) {

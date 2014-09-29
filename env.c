@@ -4,7 +4,7 @@
 #include <stdlib.h> // putenv, getenv
 #include <string.h> // strdup
 
-extern char const* const* environ;
+extern char** environ;
 
 static void
 prepend_env_pathlist(const char* name, const char* value) {
@@ -48,11 +48,11 @@ fatso_append_base_environment(struct fatso* f) {
 #if defined(__APPLE__)
   // DYLD_LIBRARY_PATH
   prepend_env_pathlist("DYLD_LIBRARY_PATH", lib_path);
-#elif defined(__linux__)
+#elif defined(__linux)
   // LD_LIBRARY_PATH
   prepend_env_pathlist("LD_LIBRARY_PATH", lib_path);
 #else
-  #warning Don't know how to inform environment of lib path on this platform. :(
+  #warning "Don't know how to inform environment of lib path on this platform. :("
 #endif
 
   // CFLAGS
@@ -102,7 +102,7 @@ out:
 
 static void
 print_environment() {
-  for (char const* const* p = environ; *p; ++p) {
+  for (char** p = environ; *p; ++p) {
     printf("%s\n", *p);
   }
 }

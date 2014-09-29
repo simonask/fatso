@@ -1,6 +1,16 @@
 all: fatso
 
-CFLAGS := $(CFLAGS) -O0 -g -Wall -pedantic -Werror -Wno-gnu-zero-variadic-macro-arguments
+CFLAGS := $(CFLAGS) -std=gnu99 -O0 -g -Wall -pedantic -Werror
+
+UNAME_S := $(shell uname -s)
+ifeq ($(UNAME_S),Darwin)
+	CFLAGS += -Wno-gnu-zero-variadic-macro-arguments
+	ARCHIVE_COMMAND = libtool -static -o
+endif
+ifeq ($(UNAME_S),Linux)
+	CFLAGS += -D_POSIX_C_SOURCE=200809L -D_GNU_SOURCE
+	ARCHIVE_COMMAND = ar rcs
+endif
 
 HEADERS := fatso.h util.h internal.h
 SOURCES := \
@@ -31,13 +41,13 @@ OBJECTS := $(patsubst %.c,%.o,$(SOURCES))
 	$(CC) $(CFLAGS) -c -o $@ $<
 
 libfatso.a: $(OBJECTS)
-	libtool -static -o $@ $^
+	 $(ARCHIVE_COMMAND) $@ $^
 
 fatso: main.o libfatso.a
-	$(CC) $(LDFLAGS) -o $@ -lyaml $^
+	$(CC) $(LDFLAGS) -o $@ $^ -lyaml
 
 test/test: test/test.o libfatso.a test/test.h
-	$(CC) $(LDFLAGS) -o $@ -lyaml $< libfatso.a
+	$(CC) $(LDFLAGS) -o $@ $< libfatso.a -lyaml
 
 test: test/test
 	exec test/test

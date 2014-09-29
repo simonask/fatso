@@ -6,19 +6,27 @@
 #include <string.h>
 #include <stdbool.h>
 #include <stdlib.h> // free
+#include <stdarg.h>
 
 #define TEST(func) run_test(func, #func)
 #define ASSERT(expr) ASSERT_FMT(expr, NULL)
-#define ASSERT_FMT(expr, fmt, ...) { \
+#define ASSERT_FMT(expr, ...) { \
   ++g_num_asserts; \
   if (!(expr)) { \
     g_failed_expression = #expr; \
     g_failed_file = __FILE__; \
     g_failed_line_number = __LINE__; \
-    if (fmt) { asprintf(&g_failed_info, fmt, ##__VA_ARGS__); } \
+    asprintf_if(&g_failed_info, __VA_ARGS__); \
     ++g_test_failed; \
     return; \
   } \
+}
+
+static void asprintf_if(char** out_buffer, const char* fmt, ...) {
+  va_list ap;
+  va_start(ap, fmt);
+  vasprintf(out_buffer, fmt, ap);
+  va_end(ap);
 }
 
 static int g_test_failed = 0;

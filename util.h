@@ -3,7 +3,7 @@
 #define FATSO_UTIL_H_INCLUDED
 
 #include <stddef.h> // size_t
-#include <signal.h> // pid_t
+#include <sys/types.h> // pid_t
 #include <unistd.h> // ssize_t
 
 #ifdef __cplusplus

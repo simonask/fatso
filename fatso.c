@@ -3,12 +3,13 @@
 #include "util.h"
 
 #include <getopt.h>
-#include <unistd.h> // getwd
+#include <unistd.h> // getcwd
 #include <stdio.h>
 #include <stdlib.h> // exit, realpath
 #include <string.h>
 #include <stdarg.h>
 #include <sys/stat.h> // mkdir
+#include <sys/param.h> // MAXPATHLEN
 
 int
 fatso_upgrade(struct fatso* f, int argc, char* const* argv) {
@@ -59,7 +60,8 @@ void fatso_set_project_directory(struct fatso* f, const char* path) {
 
 static char*
 find_fatso_yml(struct fatso* f) {
-  char* r = getwd(NULL);
+  char* wd = fatso_alloc(MAXPATHLEN);
+  char* r = getcwd(wd, MAXPATHLEN);
   char* check;
   asprintf(&check, "%s/fatso.yml", r);
 
@@ -74,7 +76,7 @@ find_fatso_yml(struct fatso* f) {
   fatso_free(check);
   return r;
 not_found:
-  fatso_free(r);
+  fatso_free(wd);
   fatso_free(check);
   return NULL;
 }
