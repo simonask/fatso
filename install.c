@@ -15,7 +15,7 @@ fatso_install(struct fatso* f, int argc, char* const* argv) {
   char* packages_git_dir;
   asprintf(&packages_git_dir, "%s/packages/.git", fatso_home_directory(f));
   if (!fatso_directory_exists(packages_git_dir)) {
-    fprintf(stderr, "Repository is empty. Please run `fatso sync`.\n");
+    fatso_logf(f, FATSO_LOG_FATAL, "Repository is empty. Please run `fatso sync`.");
     r = 1;
     goto out;
   }

@@ -114,35 +114,37 @@ int fatso_generate_dependency_graph(struct fatso* f) {
 
   enum fatso_dependency_graph_resolution_status status;
   struct fatso_dependency_graph* graph = fatso_dependency_graph_for_package(f, &f->project->package, &status);
+
+  fatso_strbuf_t msg;
+  fatso_strbuf_init(&msg);
+
   switch (status) {
     case FATSO_DEPENDENCY_GRAPH_CONFLICT: {
-      // TODO: Append to buffer and output as single log message.
-      fprintf(stderr, "The following dependencies could not be simultaneously met:\n");
+      fatso_strbuf_printf(&msg, "The following dependencies could not be simultaneously met:\n");
 
       fatso_conflicts_t conflicts = {0};
       fatso_dependency_graph_get_conflicts(graph, &conflicts);
       for (size_t i = 0; i < conflicts.size; ++i) {
         struct fatso_dependency* dep = conflicts.data[i].dependency;
-        fprintf(stderr, "  %s ", dep->name);
+        fatso_strbuf_printf(&msg, "  %s ", dep->name);
         for (size_t j = 0; j < dep->constraints.size; ++j) {
-          fprintf(stderr, "%s", fatso_constraint_to_string_unsafe(&dep->constraints.data[j]));
+          fatso_strbuf_printf(&msg, "%s", fatso_constraint_to_string_unsafe(&dep->constraints.data[j]));
           if (j + 1 < dep->constraints.size) {
-            fprintf(stderr, ", ");
+            fatso_strbuf_printf(&msg, ", ");
           }
         }
-        fprintf(stderr, " (from %s %s)\n", conflicts.data[i].package->name, fatso_version_string(&conflicts.data[i].package->version));
+        fatso_strbuf_printf(&msg, " (from %s %s)\n", conflicts.data[i].package->name, fatso_version_string(&conflicts.data[i].package->version));
       }
 
       r = 1;
       break;
     }
     case FATSO_DEPENDENCY_GRAPH_UNKNOWN: {
-      // TODO: Append to buffer and output as single log message.
-      fprintf(stderr, "The following packages could not be found in any repository:\n");
+      fatso_strbuf_printf(&msg, "The following packages could not be found in any repository:\n");
       fatso_unknown_dependencies_t unknowns = {0};
       fatso_dependency_graph_get_unknown_dependencies(graph, &unknowns);
       for (size_t i = 0; i < unknowns.size; ++i) {
-        fprintf(stderr, "  %s\n", unknowns.data[i]->name);
+        fatso_strbuf_printf(&msg, "  %s\n", unknowns.data[i]->name);
       }
 
       r = 1;
@@ -153,6 +155,12 @@ int fatso_generate_dependency_graph(struct fatso* f) {
       break;
     }
   }
+  if (msg.size) {
+    char* message = fatso_strbuf_strdup(&msg);
+    fatso_logf(f, FATSO_LOG_FATAL, message);
+    fatso_free(message);
+  }
+  fatso_strbuf_destroy(&msg);
   fatso_dependency_graph_free(graph);
 
   return r;

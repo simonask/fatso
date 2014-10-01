@@ -73,12 +73,12 @@ fatso_info(struct fatso* f, int argc, char* const* argv) {
         break;
       }
       case FATSO_PACKAGE_UNKNOWN: {
-        fprintf(stderr, "Unknown package: %s\n", argv[1]);
+        fatso_logf(f, FATSO_LOG_FATAL, "Unknown package: %s\n", argv[1]);
         r = 1;
         break;
       }
       case FATSO_PACKAGE_NO_MATCHING_VERSION: {
-        fprintf(stderr, "Package found, but no versions found: %s\n", argv[1]);
+        fatso_logf(f, FATSO_LOG_FATAL, "Package found, but no versions found: %s\n", argv[1]);
         r = 1;
         break;
       }
