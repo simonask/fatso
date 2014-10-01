@@ -2,12 +2,15 @@
 #ifndef FATSO_H_INCLUDED
 #define FATSO_H_INCLUDED
 
+#include <stddef.h> // size_t
+
 #ifdef __cplusplus
 extern "C" {
 #endif
 
 struct fatso;
 struct fatso_project;
+struct fatso_logger;
 
 typedef int(*fatso_command_t)(struct fatso*, int argc, char* const* argv);
 
@@ -17,10 +20,22 @@ struct fatso {
   char* global_dir;
   char* working_dir;
   struct fatso_project* project;
+  const struct fatso_logger* logger;
+};
+
+enum fatso_log_level {
+  FATSO_LOG_INFO,
+  FATSO_LOG_WARN,
+  FATSO_LOG_FATAL,
+};
+
+struct fatso_logger {
+  void(*log)(struct fatso*, int level, const char* message, size_t length);
 };
 
 int fatso_init(struct fatso*, const char* program_name);
 void fatso_destroy(struct fatso*);
+void fatso_set_logger(struct fatso*, const struct fatso_logger*);
 void fatso_set_home_directory(struct fatso*, const char*);
 void fatso_set_project_directory(struct fatso*, const char*);
 const char* fatso_home_directory(struct fatso*);

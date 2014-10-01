@@ -18,6 +18,9 @@ void* fatso_calloc(size_t count, size_t size);
 void* fatso_reallocf(void* ptr, size_t new_size);
 void fatso_free(void* ptr);
 
+void fatso_logz(struct fatso*, int level, const char* message, size_t length);
+void fatso_logf(struct fatso*, int level, const char* fmt, ...);
+
 #define BLACK   "\033[22;30m"
 #define RED     "\033[01;31m"
 #define GREEN   "\033[01;32m"

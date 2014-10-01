@@ -78,7 +78,7 @@ fatso_load_project(struct fatso* f) {
   asprintf(&fatso_yml, "%s/fatso.yml", f->project->path);
   r = parse_fatso_yml(f->project, fatso_yml, &error_message);
   if (r != 0) {
-    fprintf(stderr, "Cannot load project: %s\n", error_message);
+    fatso_logf(f, FATSO_LOG_FATAL, "Cannot load project: %s", error_message);
     goto error;
   }
 
@@ -105,7 +105,7 @@ fatso_load_or_generate_dependency_graph(struct fatso* f) {
 
 int
 fatso_load_dependency_graph(struct fatso* f) {
-  fprintf(stderr, "%s: NIY\n", __func__);
+  fatso_logf(f, FATSO_LOG_FATAL, "%s: NIY", __func__);
   return -1;
 }
 
@@ -116,6 +116,7 @@ int fatso_generate_dependency_graph(struct fatso* f) {
   struct fatso_dependency_graph* graph = fatso_dependency_graph_for_package(f, &f->project->package, &status);
   switch (status) {
     case FATSO_DEPENDENCY_GRAPH_CONFLICT: {
+      // TODO: Append to buffer and output as single log message.
       fprintf(stderr, "The following dependencies could not be simultaneously met:\n");
 
       fatso_conflicts_t conflicts = {0};
@@ -136,6 +137,7 @@ int fatso_generate_dependency_graph(struct fatso* f) {
       break;
     }
     case FATSO_DEPENDENCY_GRAPH_UNKNOWN: {
+      // TODO: Append to buffer and output as single log message.
       fprintf(stderr, "The following packages could not be found in any repository:\n");
       fatso_unknown_dependencies_t unknowns = {0};
       fatso_dependency_graph_get_unknown_dependencies(graph, &unknowns);

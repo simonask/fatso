@@ -3,8 +3,8 @@
 #include "util.h"
 
 #include <glob.h>
-#include <stdio.h>  // perror
-#include <string.h> // strcmp
+#include <string.h> // strcmp, strerror
+#include <errno.h>
 #include <stdlib.h> // qsort
 
 struct fatso_package_versions_list {
@@ -79,7 +79,7 @@ fatso_repository_find_package_versions(struct fatso* f, const char* name, struct
     asprintf(&pattern, "%s/*.yml", package_dir);
     r = glob(pattern, GLOB_NOSORT, NULL, &g);
     if (r != 0) {
-      perror("glob");
+      fatso_logf(f, FATSO_LOG_FATAL, "glob: %s", strerror(errno));
       goto error;
     }
 
@@ -104,13 +104,13 @@ fatso_repository_find_package_versions(struct fatso* f, const char* name, struct
             }
             ++valid_i;
           } else {
-            fprintf(stderr, "WARNING (%s): %s\n", path, error_message);
+            fatso_logf(f, FATSO_LOG_WARN, "WARNING (%s): %s", path, error_message);
             free(error_message);
             fatso_package_destroy(package);
           }
           fclose(fp);
         } else {
-          fprintf(stderr, "WARNING (%s): Could not open file.\n", path);
+          fatso_logf(f, FATSO_LOG_WARN, "WARNING (%s): Could not open file.", path);
         }
       }
     }

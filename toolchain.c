@@ -3,6 +3,8 @@
 
 #include <unistd.h> // getwd, chdir
 #include <sys/param.h> // MAXPATHLEN
+#include <string.h> // strerror
+#include <errno.h>
 
 static void ignore_output(struct fatso_process* p, const void* buffer, size_t len) {}
 static void forward_stderr(struct fatso_process* p, const void* buffer, size_t len) {
@@ -34,13 +36,13 @@ configure_and_make(struct fatso* f, struct fatso_package* p) {
 
   r = fatso_system_with_callbacks(cmd, &g_forward_stderr);
   if (r != 0) {
-    fprintf(stderr, "Error during configure.");
+    fatso_logf(f, FATSO_LOG_FATAL, "Error during configure.");
     goto out_with_chdir;
   }
 
   r = fatso_system_with_callbacks("make", &g_forward_stderr);
   if (r != 0) {
-    fprintf(stderr, "Error during make.");
+    fatso_logf(f, FATSO_LOG_FATAL, "Error during make.");
     goto out_with_chdir;
   }
 
@@ -48,7 +50,7 @@ out_with_chdir:
   r2 = chdir(original_wd);
   if (r2 != 0) {
     r = r2;
-    perror("chdir");
+    fatso_logf(f, FATSO_LOG_WARN, "chdir: %s", strerror(errno));
   }
 out:
   fatso_free(original_wd);
@@ -65,12 +67,12 @@ make_install(struct fatso* f, struct fatso_package* p) {
   char* build_path = fatso_package_build_path(f, p);
   r = chdir(build_path);
   if (r != 0) {
-    perror("chdir");
+    fatso_logf(f, FATSO_LOG_FATAL, "chdir: %s", strerror(errno));
     goto out;
   }
   r = fatso_system_with_callbacks("make install", &g_forward_stderr);
   if (r != 0) {
-    fprintf(stderr, "Error during make install.");
+    fatso_logf(f, FATSO_LOG_FATAL, "Error during make install.");
     goto out_with_chdir;
   }
 
@@ -78,7 +80,7 @@ out_with_chdir:
   r2 = chdir(original_wd);
   if (r2 != 0) {
     r = r2;
-    perror("chdir");
+    fatso_logf(f, FATSO_LOG_WARN, "chdir: %s", strerror(errno));
   }
 out:
   fatso_free(build_path);

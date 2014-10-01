@@ -1,7 +1,8 @@
 #include "fatso.h"
 #include "internal.h"
 
-#include <string.h> // strdup
+#include <string.h> // strdup, strerror
+#include <errno.h>
 #include <yaml.h>
 #include <libgen.h> // basename
 #include <unistd.h> // getwd, chdir
@@ -21,7 +22,7 @@ tarball_get_paths(struct fatso* f, struct fatso_package* p, struct fatso_source*
 
   char* filename = basename(name);
   if (filename == NULL) {
-    perror("basename");
+    fatso_logf(f, FATSO_LOG_FATAL, "basename (%s): %s", name, strerror(errno));
     goto error;
   }
 
@@ -45,7 +46,7 @@ fatso_tarball_fetch(struct fatso* f, struct fatso_package* package, struct fatso
 
   r = fatso_mkdir_p(source_dir);
   if (r != 0) {
-    perror("mkdir");
+    fatso_logf(f, FATSO_LOG_FATAL, "mkdir: %s", strerror(errno));
     goto out;
   }
 
@@ -74,7 +75,7 @@ fatso_tarball_unpack(struct fatso* f, struct fatso_package* package, struct fats
     goto out;
 
   if (!fatso_file_exists(downloaded_file_path)) {
-    fprintf(stderr, "File not found: %s\n", downloaded_file_path);
+    fatso_logf(f, FATSO_LOG_FATAL, "File not found: %s", downloaded_file_path);
     r = 1;
     goto out;
   }
@@ -82,7 +83,7 @@ fatso_tarball_unpack(struct fatso* f, struct fatso_package* package, struct fats
   build_path = fatso_package_build_path(f, package);
   r = fatso_mkdir_p(build_path);
   if (r != 0) {
-    perror(build_path);
+    fatso_logf(f, FATSO_LOG_FATAL, "mkdir (%s): %s", build_path, strerror(errno));
     goto out;
   }
 

@@ -6,7 +6,8 @@
 #include <unistd.h> // getcwd
 #include <stdio.h>
 #include <stdlib.h> // exit, realpath
-#include <string.h>
+#include <string.h> // strerror
+#include <errno.h>
 #include <stdarg.h>
 #include <sys/stat.h> // mkdir
 #include <sys/param.h> // MAXPATHLEN
@@ -17,6 +18,18 @@ fatso_upgrade(struct fatso* f, int argc, char* const* argv) {
   return 0;
 }
 
+static void
+log_stdio(struct fatso* f, int level, const char* message, size_t message_len) {
+  FILE* fp = stderr;
+  if (level == FATSO_LOG_INFO) {
+    fp = stdout;
+  }
+  fwrite(message, message_len, 1, fp);
+  fwrite("\n", 1, 1, fp);
+}
+
+static struct fatso_logger g_default_logger = { log_stdio };
+
 int
 fatso_init(struct fatso* f, const char* program_name) {
   f->program_name = program_name;
@@ -24,7 +37,13 @@ fatso_init(struct fatso* f, const char* program_name) {
   f->command = NULL;
   f->global_dir = NULL;
   f->working_dir = NULL;
+  f->logger = &g_default_logger;
   return 0;
+}
+
+void
+fatso_set_logger(struct fatso* f, const struct fatso_logger* logger) {
+  f->logger = logger;
 }
 
 void fatso_set_home_directory(struct fatso* f, const char* path) {
@@ -45,8 +64,7 @@ fatso_home_directory(struct fatso* f) {
   if (!fatso_directory_exists(f->global_dir)) {
     int r = mkdir(f->global_dir, 0755);
     if (r != 0) {
-      fprintf(stderr, "Fatso homedir (%s) does not exist, and could not be created.\n", f->global_dir);
-      perror("mkdir");
+      fatso_logf(f, FATSO_LOG_FATAL, "Fatso homedir (%s) does not exist, and could not be created.\nmkdir: %s", f->global_dir, strerror(errno));
       exit(1);
     }
   }
@@ -87,7 +105,7 @@ fatso_project_directory(struct fatso* f) {
   if (!f->working_dir) {
     f->working_dir = find_fatso_yml(f);
     if (f->working_dir == NULL) {
-      fprintf(stderr, "fatso.yml not found in this or any parent directory.\n");
+      fatso_logf(f, FATSO_LOG_FATAL, "fatso.yml not found in this or any parent directory.");
       exit(1);
     }
   }
@@ -99,4 +117,20 @@ fatso_destroy(struct fatso* f) {
   fatso_free(f->project);
   fatso_free(f->global_dir);
   fatso_free(f->working_dir);
+}
+
+void
+fatso_logz(struct fatso* f, int level, const char* message, size_t message_len) {
+  f->logger->log(f, level, message, message_len);
+}
+
+void
+fatso_logf(struct fatso* f, int level, const char* fmt, ...) {
+  va_list ap;
+  va_start(ap, fmt);
+  char* message;
+  vasprintf(&message, fmt, ap);
+  va_end(ap);
+  fatso_logz(f, level, message, strlen(message));
+  fatso_free(message);
 }
