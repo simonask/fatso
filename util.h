@@ -5,6 +5,7 @@
 #include <stddef.h> // size_t
 #include <sys/types.h> // pid_t
 #include <unistd.h> // ssize_t
+#include <stdarg.h> // va_list
 
 #ifdef __cplusplus
 extern "C" {
@@ -90,6 +91,16 @@ fatso_set_insert(void** inout_data, size_t* inout_num_elements, const void* new_
 
 #define fatso_set_insert_v(array, new_element, compare) \
   fatso_set_insert((void**)&((array)->data), &((array)->size), (new_element), sizeof(*new_element), compare)
+
+
+typedef FATSO_ARRAY(char) fatso_strbuf_t;
+void fatso_strbuf_init(fatso_strbuf_t*);
+void fatso_strbuf_destroy(fatso_strbuf_t*);
+void fatso_strbuf_printf(fatso_strbuf_t*, const char* fmt, ...);
+void fatso_strbuf_vprintf(fatso_strbuf_t*, const char* fmt, va_list ap);
+void fatso_strbuf_append(fatso_strbuf_t*, const char* string, size_t len);
+char* fatso_strbuf_strdup(const fatso_strbuf_t*);
+char* fatso_strbuf_strndup(const fatso_strbuf_t*, size_t len);
 
 
 struct fatso_process;

@@ -225,3 +225,41 @@ fatso_set_insert(void** inout_data, size_t* inout_num_elements, const void* new_
   }
   return ptr;
 }
+
+void
+fatso_strbuf_init(fatso_strbuf_t* buf) {
+  memset(buf, 0, sizeof(*buf));
+}
+
+void
+fatso_strbuf_destroy(fatso_strbuf_t* buf) {
+  fatso_free(buf->data);
+  memset(buf, 0, sizeof(*buf));
+}
+
+void
+fatso_strbuf_printf(fatso_strbuf_t* buf, const char* fmt, ...) {
+  va_list ap;
+  va_start(ap, fmt);
+  char* append;
+  vasprintf(&append, fmt, ap);
+  va_end(ap);
+  fatso_strbuf_append(buf, append, strlen(append));
+  fatso_free(append);
+}
+
+void
+fatso_strbuf_append(fatso_strbuf_t* buf, const char* string, size_t len) {
+  buf->data = fatso_reallocf(buf->data, buf->size + len);
+  buf->data = strncat(buf->data, string, len);
+}
+
+char*
+fatso_strbuf_strdup(const fatso_strbuf_t* buf) {
+  return strndup(buf->data, buf->size);
+}
+
+char*
+fatso_strbuf_strndup(const fatso_strbuf_t* buf, size_t len) {
+  return strndup(buf->data, len);
+}
