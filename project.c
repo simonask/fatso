@@ -157,7 +157,7 @@ int fatso_generate_dependency_graph(struct fatso* f) {
   }
   if (msg.size) {
     char* message = fatso_strbuf_strdup(&msg);
-    fatso_logf(f, FATSO_LOG_FATAL, message);
+    fatso_logz(f, FATSO_LOG_FATAL, message, msg.size);
     fatso_free(message);
   }
   fatso_strbuf_destroy(&msg);
