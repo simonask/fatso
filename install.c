@@ -38,7 +38,7 @@ enum install_status {
 };
 
 static void
-print_install_progress(struct fatso* f, struct fatso_package* p, enum install_status is, const char* fmt, ...) {
+print_progress(struct fatso* f, struct fatso_package* p, enum install_status is, const char* fmt, ...) {
   const char* color;
   switch (is) {
     case INSTALL_STATUS_OK: color = GREEN; break;
@@ -56,7 +56,7 @@ print_install_progress(struct fatso* f, struct fatso_package* p, enum install_st
 int
 fatso_package_download(struct fatso* f, struct fatso_package* p, struct fatso_source** out_chosen_source) {
   if (p->source == NULL) {
-    print_install_progress(f, p, INSTALL_STATUS_ERROR, "Invalid package definition, no source specified!");
+    print_progress(f, p, INSTALL_STATUS_ERROR, "Invalid package definition, no source specified!");
     return 1;
   } else {
     *out_chosen_source = p->source;
@@ -74,13 +74,13 @@ fatso_package_download_and_unpack(struct fatso* f, struct fatso_package* p) {
   struct fatso_source* chosen_source = NULL;
   int r;
 
-  print_install_progress(f, p, INSTALL_STATUS_WORKING, "Downloading...");
+  print_progress(f, p, INSTALL_STATUS_WORKING, "Downloading...");
 
   r = fatso_package_download(f, p, &chosen_source);
   if (r != 0)
     goto out;
 
-  print_install_progress(f, p, INSTALL_STATUS_WORKING, "Unpacking...");
+  print_progress(f, p, INSTALL_STATUS_WORKING, "Unpacking...");
 
   r = fatso_package_unpack(f, p, chosen_source);
   if (r != 0)
@@ -90,16 +90,26 @@ out:
   return r;
 }
 
+static void
+print_build_progress(struct fatso* f, void* userdata, const char* what, unsigned int progress, unsigned int total) {
+  print_progress(f, userdata, progress < total ? INSTALL_STATUS_WORKING : INSTALL_STATUS_OK, "%s (%u/%u)", what, progress, total);
+}
+
+static void
+print_install_progress(struct fatso* f, void* userdata, const char* what, unsigned int progress, unsigned int total) {
+  print_progress(f, userdata, progress < total ? INSTALL_STATUS_WORKING : INSTALL_STATUS_OK, "%s (%u/%u)", what, progress, total);
+}
+
 int
 fatso_package_build(struct fatso* f, struct fatso_package* p, const struct fatso_toolchain* toolchain) {
-  print_install_progress(f, p, INSTALL_STATUS_WORKING, "Building...");
-  return toolchain->build(f, p);
+  print_progress(f, p, INSTALL_STATUS_WORKING, "Building...");
+  return toolchain->build(f, p, print_build_progress);
 }
 
 int
 fatso_package_install_products(struct fatso* f, struct fatso_package* p, const struct fatso_toolchain* toolchain) {
-  print_install_progress(f, p, INSTALL_STATUS_WORKING, "Installing...");
-  return toolchain->install(f, p);
+  print_progress(f, p, INSTALL_STATUS_WORKING, "Installing...");
+  return toolchain->install(f, p, print_install_progress);
 }
 
 int
@@ -113,7 +123,7 @@ fatso_package_install(struct fatso* f, struct fatso_package* p) {
   struct fatso_toolchain toolchain;
   r = fatso_guess_toolchain(f, p, &toolchain);
   if (r != 0) {
-    print_install_progress(f, p, INSTALL_STATUS_ERROR, "Error guessing toolchain.\n");
+    print_progress(f, p, INSTALL_STATUS_ERROR, "Error guessing toolchain.\n");
     goto out;
   }
 
@@ -128,8 +138,6 @@ fatso_package_install(struct fatso* f, struct fatso_package* p) {
   // r = fatso_package_append_build_flags(f, p);
   // if (r != 0)
   //   return r;
-
-  print_install_progress(f, p, INSTALL_STATUS_OK, "OK");
 out:
   printf("\n");
   return r;

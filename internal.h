@@ -137,9 +137,11 @@ int fatso_package_parse_from_string(struct fatso_package*, const char* buffer, c
 char* fatso_package_build_path(struct fatso*, struct fatso_package*);
 char* fatso_package_install_prefix(struct fatso*, struct fatso_package*);
 
+typedef void(*fatso_report_progress_callback_t)(struct fatso*, void* identifier, const char* what, unsigned int progress, unsigned int total);
+
 struct fatso_toolchain {
-  int(*build)(struct fatso*, struct fatso_package*);
-  int(*install)(struct fatso*, struct fatso_package*);
+  int(*build)(struct fatso*, struct fatso_package*, fatso_report_progress_callback_t progress);
+  int(*install)(struct fatso*, struct fatso_package*, fatso_report_progress_callback_t progress);
 };
 
 int fatso_guess_toolchain(struct fatso*, struct fatso_package*, struct fatso_toolchain* out_chain);
