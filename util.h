@@ -23,6 +23,9 @@ void debugf_(const char* fmt, ...);
 const char*
 fatso_get_homedir();
 
+unsigned int
+fatso_get_number_of_cpu_cores();
+
 bool
 fatso_directory_exists(const char* path);
 

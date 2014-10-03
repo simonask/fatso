@@ -2,7 +2,7 @@
 #include "internal.h"
 
 #include <sys/stat.h> // lstat
-#include <unistd.h>   // getuid
+#include <unistd.h>   // getuid, sysconf
 #include <stdlib.h>   // getenv
 #include <errno.h>    // errno
 #include <stdio.h>    // perror
@@ -32,6 +32,15 @@ debugf_(const char* fmt, ...) {
   va_end(ap);
   fprintf(stderr, YELLOW "DEBUG:" RESET " %s\n", buffer);
   free(buffer);
+}
+
+unsigned int
+fatso_get_number_of_cpu_cores() {
+  long r = sysconf(_SC_NPROCESSORS_ONLN);
+  if (r > 0) {
+    return (unsigned int)r;
+  }
+  return 2;
 }
 
 const char*
