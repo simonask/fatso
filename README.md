@@ -26,7 +26,7 @@ project: my_project
 version: 0.0.1
 author: Simon Ask Ulsnes <simon@ulsnes.dk>
 dependencies:
-- ['libyaml', '~> 0.1.14']
+- ['libyaml', '~> 0.1.4']
 ```
 
 The above project has a single dependency: `libyaml`, at fuzzy version 0.1.4.
