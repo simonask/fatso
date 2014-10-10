@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html>
+
+  <head>
+    <meta charset='utf-8'>
+    <meta http-equiv="X-UA-Compatible" content="chrome=1">
+    <meta name="description" content="Fatso : Fatso Package Manager">
+
+    <link rel="stylesheet" type="text/css" media="screen" href="stylesheets/stylesheet.css">
+
+    <title>Fatso</title>
+  </head>
+
+  <body>
+
+    <!-- HEADER -->
+    <div id="header_wrap" class="outer">
+        <header class="inner">
+          <a id="forkme_banner" href="https://github.com/simonask/fatso">View on GitHub</a>
+
+          <h1 id="project_title">Fatso</h1>
+          <h2 id="project_tagline">Fatso Package Manager</h2>
+
+            <section id="downloads">
+              <a class="zip_download_link" href="https://github.com/simonask/fatso/zipball/master">Download this project as a .zip file</a>
+              <a class="tar_download_link" href="https://github.com/simonask/fatso/tarball/master">Download this project as a tar.gz file</a>
+            </section>
+        </header>
+    </div>
+
+    <!-- MAIN CONTENT -->
+    <div id="main_content_wrap" class="outer">
+      <section id="main_content" class="inner">
+        <h1>
+<a name="fatso-package-manager" class="anchor" href="#fatso-package-manager"><span class="octicon octicon-link"></span></a>Fatso Package Manager</h1>
+
+<p>Fatso is a bundling package manager for compiled projects written in C. Think <a href="http://bundler.io/">Bundler</a> for C/C++ projects.</p>
+
+<p>Fatso downloads and builds all dependencies of your project, and installs them in a locally contained folder, so your project
+can build and link against them with zero system dependencies.</p>
+
+<p>Fatso supports the following build systems:</p>
+
+<ul>
+<li>Autotools</li>
+<li>CMake (TODO)</li>
+<li>Plain GNU Make (TODO)</li>
+<li>SCons (TODO)</li>
+<li>bjam (TODO)</li>
+<li>Custom scripts (TODO)</li>
+</ul>
+
+<p>Fatso is still in very early stages of development.</p>
+
+<h2>
+<a name="getting-started" class="anchor" href="#getting-started"><span class="octicon octicon-link"></span></a>Getting Started</h2>
+
+<p>Create a <code>fatso.yml</code> in your project. It's just a basic YAML-file specifying
+your dependencies, and it could look like this:</p>
+
+<pre><code>project: my_project
+version: 0.0.1
+author: Simon Ask Ulsnes &lt;simon@ulsnes.dk&gt;
+dependencies:
+- ['libyaml', '~&gt; 0.1.14']
+</code></pre>
+
+<p>The above project has a single dependency: <code>libyaml</code>, at fuzzy version 0.1.4.</p>
+
+<p>To install the dependencies after having modified <code>fatso.yml</code>, run:</p>
+
+<pre><code>$ fatso install
+</code></pre>
+
+<p>To build your project, run:</p>
+
+<pre><code>$ fatso build
+</code></pre>
+
+<p>Fatso will automatically detect the toolchain your project is using. If it fails
+to detect it, or your project needs special care while building, you have two
+options:</p>
+
+<ol>
+<li><p>Tell Fatso about it, by setting <code>toolchain: &lt;build command&gt;</code> in your
+<code>fatso.yml</code>. Fatso will set the CFLAGS/LDFLAGS environment variables with
+the necessary options to build against your local Fatso environment, so if
+your build tool takes those into account, you should be fine.</p></li>
+<li><p>Integrate Fatso into your existing build scripts by letting them call
+<code>fatso cflags</code> and <code>fatso ldflags</code> in the relevant phases. Both commands
+print the CFLAGS/LDFLAGS needed to build against your project's Fatso
+environment.</p></li>
+</ol>
+
+<h2>
+<a name="frequently-asked-questions" class="anchor" href="#frequently-asked-questions"><span class="octicon octicon-link"></span></a>Frequently Asked Questions</h2>
+
+<h3>
+<a name="will-package-xyz-be-supported-by-fatso" class="anchor" href="#will-package-xyz-be-supported-by-fatso"><span class="octicon octicon-link"></span></a>Will package XYZ be supported by Fatso?</h3>
+
+<p>Hard to say. Most "well-behaved" software packages, i.e. packages that build
+according to the usual conventions and don't assume that they're installed
+in system-wide directories, should be trivial to support. Less well behaved
+packages may require special patches or upstream support to be buildable in an
+isolated environment.</p>
+
+<h3>
+<a name="are-fatso-projects-relocatable" class="anchor" href="#are-fatso-projects-relocatable"><span class="octicon octicon-link"></span></a>Are Fatso projects relocatable?</h3>
+
+<p>That depends if all your dependencies are relocatable. To be certain, run
+<code>fatso clean</code> and <code>fatso install</code> after moving your project.</p>
+
+<h2>
+<a name="dependencies" class="anchor" href="#dependencies"><span class="octicon octicon-link"></span></a>Dependencies</h2>
+
+<ul>
+<li>POSIX system (Linux, OS X)</li>
+<li>GNU Make or compatible</li>
+<li>C99 compiler (Clang or GCC should both work)</li>
+<li><a href="http://pyyaml.org/wiki/LibYAML">libyaml</a></li>
+<li>
+<a href="http://git-scm.com/">Git</a> (<code>git</code> tool must be in $PATH)</li>
+<li>
+<a href="http://curl.haxx.se">curl</a> (<code>curl</code> tool must be in $PATH)</li>
+</ul>
+
+<h2>
+<a name="building" class="anchor" href="#building"><span class="octicon octicon-link"></span></a>Building</h2>
+
+<p>Run <code>make</code>.</p>
+
+<p>Run <code>make test</code> to build and run tests.</p>
+
+<h2>
+<a name="windows-support" class="anchor" href="#windows-support"><span class="octicon octicon-link"></span></a>Windows Support</h2>
+
+<p>Windows support is not a priority at the moment, and design decisions will not be made with non-POSIX systems in mind. However,
+patches to accommodate POSIX layers on Windows such as Cygwin will be accepted.</p>
+      </section>
+    </div>
+
+    <!-- FOOTER  -->
+    <div id="footer_wrap" class="outer">
+      <footer class="inner">
+        <p class="copyright">Fatso maintained by <a href="https://github.com/simonask">simonask</a></p>
+        <p>Published with <a href="http://pages.github.com">GitHub Pages</a></p>
+      </footer>
+    </div>
+
+    
+
+  </body>
+</html>
