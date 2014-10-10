@@ -29,7 +29,7 @@ dependencies:
 - ['libyaml', '~> 0.1.14']
 ```
 
-The above project has a single dependency: `libyaml`, at fuzzy version 0.1.4.
+The above project has a single dependency: `libyaml`, at fuzzy version 0.1.14.
 
 To install the dependencies after having modified `fatso.yml`, run:
 
