@@ -6,7 +6,7 @@
 yaml_node_t*
 fatso_yaml_mapping_lookup(yaml_document_t* doc, yaml_node_t* mapping, const char* key) {
   assert(mapping->type == YAML_MAPPING_NODE);
-  for (yaml_node_pair_t* x = mapping->data.mapping.pairs.start; x != mapping->data.mapping.pairs.end; ++x) {
+  for (yaml_node_pair_t* x = mapping->data.mapping.pairs.start; x != mapping->data.mapping.pairs.top; ++x) {
     yaml_node_t* k = yaml_document_get_node(doc, x->key);
     if (k) {
       if (strncmp(key, (char*)k->data.scalar.value, k->data.scalar.length) == 0) {
