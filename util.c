@@ -259,7 +259,9 @@ fatso_strbuf_printf(fatso_strbuf_t* buf, const char* fmt, ...) {
 
 void
 fatso_strbuf_append(fatso_strbuf_t* buf, const char* string, size_t len) {
-  buf->data = fatso_reallocf(buf->data, buf->size + len);
+  buf->data = fatso_reallocf(buf->data, buf->size + len + 1);
+  buf->data[buf->size] = 0;
+  buf->size = buf->size + len;
   buf->data = strncat(buf->data, string, len);
 }
 
