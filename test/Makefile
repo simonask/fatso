@@ -1,7 +1,7 @@
 all: test-project
 
 %.o: %.c
-	$(CC) $(CFLAGS) -c -o $@ $<
+	$(CC) $(CFLAGS) -Werror -c -o $@ $<
 
 test-project: project.o
 	$(CC) $(LDFLAGS) -o $@ $^ -lyaml
