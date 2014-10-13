@@ -6,9 +6,25 @@
 #include <errno.h>
 #include <ctype.h> // isspace
 
+static char*
+project_build_path(struct fatso* f, struct fatso_package* package) {
+  return strdup(fatso_project_directory(f));
+}
+
+static char*
+project_install_prefix(struct fatso* f, struct fatso_package* package) {
+  return strdup(fatso_project_directory(f));
+}
+
+static const struct fatso_package_vtbl g_project_package_vtbl = {
+  .build_path = project_build_path,
+  .install_prefix = project_install_prefix,
+};
+
 void fatso_project_init(struct fatso_project* p) {
   memset(p, 0, sizeof(*p));
   fatso_package_init(&p->package);
+  p->package.vtbl = &g_project_package_vtbl;
 }
 
 void

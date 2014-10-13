@@ -2,7 +2,7 @@
 #include "internal.h"
 #include "util.h"
 
-#include <stdio.h>
+#include <stdio.h> // write
 #include <stdarg.h>
 
 int
@@ -100,16 +100,33 @@ print_install_progress(struct fatso* f, void* userdata, const char* what, unsign
   print_progress(f, userdata, progress < total ? INSTALL_STATUS_WORKING : INSTALL_STATUS_OK, "%s (%u/%u)", what, progress, total);
 }
 
-int
-fatso_package_build(struct fatso* f, struct fatso_package* p, const struct fatso_toolchain* toolchain) {
-  print_progress(f, p, INSTALL_STATUS_WORKING, "Building...");
-  return toolchain->build(f, p, print_build_progress);
+static void
+ignore_output(struct fatso_process* p, const void* buffer, size_t len) {}
+
+static void
+forward_stderr(struct fatso_process* p, const void* buffer, size_t len) {
+  write(fileno(stderr), buffer, len);
 }
 
 int
-fatso_package_install_products(struct fatso* f, struct fatso_package* p, const struct fatso_toolchain* toolchain) {
+fatso_package_build(struct fatso* f, struct fatso_package* p, const struct fatso_toolchain* toolchain) {
+  print_progress(f, p, INSTALL_STATUS_WORKING, "Building...");
+  static const struct fatso_process_callbacks callbacks = {
+    .on_stdout = ignore_output,
+    .on_stderr = forward_stderr,
+  };
+  return fatso_package_build_with_output(f, p, toolchain, print_build_progress, &callbacks);
+}
+
+int
+fatso_package_build_with_output(struct fatso* f, struct fatso_package* p, const struct fatso_toolchain* toolchain, fatso_report_progress_callback_t progress, const struct fatso_process_callbacks* callbacks) {
+  return toolchain->build(f, p, progress, callbacks);
+}
+
+int
+fatso_package_install_products(struct fatso* f, struct fatso_package* p, const struct fatso_toolchain* toolchain, fatso_report_progress_callback_t progress, const struct fatso_process_callbacks* callbacks) {
   print_progress(f, p, INSTALL_STATUS_WORKING, "Installing...");
-  return toolchain->install(f, p, print_install_progress);
+  return toolchain->install(f, p, progress, callbacks);
 }
 
 int
@@ -131,7 +148,12 @@ fatso_package_install(struct fatso* f, struct fatso_package* p) {
   if (r != 0)
     return r;
 
-  r = fatso_package_install_products(f, p, &toolchain);
+  static const struct fatso_process_callbacks callbacks = {
+    .on_stdout = ignore_output,
+    .on_stderr = forward_stderr,
+  };
+
+  r = fatso_package_install_products(f, p, &toolchain, print_install_progress, &callbacks);
   if (r != 0)
     return r;
 

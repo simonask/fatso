@@ -119,7 +119,10 @@ void fatso_source_free(struct fatso_source*);
 int fatso_source_fetch(struct fatso*, struct fatso_package*, struct fatso_source*);
 int fatso_source_unpack(struct fatso*, struct fatso_package*, struct fatso_source*);
 
+struct fatso_package_vtbl;
+
 struct fatso_package {
+  const struct fatso_package_vtbl* vtbl;
   char* name;
   struct fatso_version version;
   char* author;
@@ -127,6 +130,11 @@ struct fatso_package {
   struct fatso_source* source; // TODO: Multiple sources
   struct fatso_configuration base_configuration;
   FATSO_ARRAY(struct fatso_configuration) configurations;
+};
+
+struct fatso_package_vtbl {
+  char*(*build_path)(struct fatso*, struct fatso_package*);
+  char*(*install_prefix)(struct fatso*, struct fatso_package*);
 };
 
 void fatso_package_init(struct fatso_package*);
@@ -140,11 +148,13 @@ char* fatso_package_install_prefix(struct fatso*, struct fatso_package*);
 typedef void(*fatso_report_progress_callback_t)(struct fatso*, void* identifier, const char* what, unsigned int progress, unsigned int total);
 
 struct fatso_toolchain {
-  int(*build)(struct fatso*, struct fatso_package*, fatso_report_progress_callback_t progress);
-  int(*install)(struct fatso*, struct fatso_package*, fatso_report_progress_callback_t progress);
+  const char* name;
+  int(*build)(struct fatso*, struct fatso_package*, fatso_report_progress_callback_t progress, const struct fatso_process_callbacks* stdio_callbacks);
+  int(*install)(struct fatso*, struct fatso_package*, fatso_report_progress_callback_t progress, const struct fatso_process_callbacks* stdio_callbacks);
 };
 
 int fatso_guess_toolchain(struct fatso*, struct fatso_package*, struct fatso_toolchain* out_chain);
+int fatso_package_build_with_output(struct fatso* f, struct fatso_package* p, const struct fatso_toolchain* toolchain, fatso_report_progress_callback_t progress, const struct fatso_process_callbacks* stdio_callbacks);
 
 enum fatso_repository_result {
   FATSO_PACKAGE_OK,
@@ -159,8 +169,8 @@ enum fatso_repository_result
 fatso_repository_find_package(struct fatso* f, const char* name, struct fatso_version* less_than_version, struct fatso_package** out_package);
 
 struct fatso_project {
+  struct fatso_package package; // must be first :)
   char* path;
-  struct fatso_package package;
   FATSO_ARRAY(struct fatso_package*) install_order;
 };
 

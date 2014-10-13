@@ -59,6 +59,7 @@ const char* fatso_project_path(struct fatso*);
 
 // Commands:
 int fatso_install(struct fatso*, int argc, char* const* argv);
+int fatso_build(struct fatso*, int argc, char* const* argv);
 int fatso_upgrade(struct fatso*, int argc, char* const* argv);
 int fatso_sync(struct fatso*, int argc, char* const* argv);
 int fatso_env(struct fatso*, int argc, char* const* argv);

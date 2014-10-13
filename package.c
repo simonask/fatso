@@ -6,8 +6,38 @@
 #include <errno.h>
 #include <stdio.h> // asprintf
 
+static char*
+package_build_path(struct fatso* f, struct fatso_package* p) {
+  char* path;
+  asprintf(&path, "%s/.fatso/build/%s/%s", fatso_project_directory(f), p->name, fatso_version_string(&p->version));
+  return path;
+}
+
+static char*
+package_install_prefix(struct fatso* f, struct fatso_package* p) {
+  char* path;
+  asprintf(&path, "%s/.fatso", fatso_project_directory(f));
+  return path;
+}
+
+char*
+fatso_package_build_path(struct fatso* f, struct fatso_package* p) {
+  return p->vtbl->build_path(f, p);
+}
+
+char*
+fatso_package_install_prefix(struct fatso* f, struct fatso_package* p) {
+  return p->vtbl->install_prefix(f, p);
+}
+
+static const struct fatso_package_vtbl g_default_package_vtbl = {
+  .build_path = package_build_path,
+  .install_prefix = package_install_prefix,
+};
+
 void fatso_package_init(struct fatso_package* p) {
   memset(p, 0, sizeof(*p));
+  p->vtbl = &g_default_package_vtbl;
 }
 
 void
@@ -125,18 +155,4 @@ fatso_package_parse_from_string(struct fatso_package* p, const char* buffer, cha
 out:
   yaml_parser_delete(&parser);
   return r;
-}
-
-char*
-fatso_package_build_path(struct fatso* f, struct fatso_package* p) {
-  char* path;
-  asprintf(&path, "%s/.fatso/build/%s/%s", fatso_project_directory(f), p->name, fatso_version_string(&p->version));
-  return path;
-}
-
-char*
-fatso_package_install_prefix(struct fatso* f, struct fatso_package* p) {
-  char* path;
-  asprintf(&path, "%s/.fatso", fatso_project_directory(f));
-  return path;
 }

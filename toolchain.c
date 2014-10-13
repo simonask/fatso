@@ -6,18 +6,8 @@
 #include <string.h> // strerror
 #include <errno.h>
 
-static void ignore_output(struct fatso_process* p, const void* buffer, size_t len) {}
-static void forward_stderr(struct fatso_process* p, const void* buffer, size_t len) {
-  write(fileno(stderr), buffer, len);
-}
-
-static const struct fatso_process_callbacks g_forward_stderr = {
-  .on_stdout = ignore_output,
-  .on_stderr = forward_stderr,
-};
-
 static int
-configure_and_make(struct fatso* f, struct fatso_package* p, fatso_report_progress_callback_t progress) {
+configure_and_make(struct fatso* f, struct fatso_package* p, fatso_report_progress_callback_t progress, const struct fatso_process_callbacks* callbacks) {
   int r, r2;
   char* cmd = NULL;
   char* build_path = fatso_package_build_path(f, p);
@@ -39,7 +29,7 @@ configure_and_make(struct fatso* f, struct fatso_package* p, fatso_report_progre
   if (!fatso_file_exists(makefile_path)) {
     asprintf(&cmd, "%s/configure --prefix=%s", build_path, install_prefix);
     progress(f, p, "configure", 0, 1);
-    r = fatso_system_with_callbacks(cmd, &g_forward_stderr);
+    r = fatso_system_with_callbacks(cmd, callbacks);
     if (r != 0) {
       fatso_logf(f, FATSO_LOG_FATAL, "Error during configure.");
       goto out_with_chdir;
@@ -51,7 +41,7 @@ configure_and_make(struct fatso* f, struct fatso_package* p, fatso_report_progre
   asprintf(&cmd, "make -j%u -f %s", fatso_get_number_of_cpu_cores(), makefile_path);
 
   progress(f, p, cmd, 0, 1);
-  r = fatso_system_with_callbacks(cmd, &g_forward_stderr);
+  r = fatso_system_with_callbacks(cmd, callbacks);
   if (r != 0) {
     fatso_logf(f, FATSO_LOG_FATAL, "Error during make.");
     goto out_with_chdir;
@@ -74,7 +64,7 @@ out:
 }
 
 static int
-make_install(struct fatso* f, struct fatso_package* p, fatso_report_progress_callback_t progress) {
+make_install(struct fatso* f, struct fatso_package* p, fatso_report_progress_callback_t progress, const struct fatso_process_callbacks* callbacks) {
   int r, r2;
   char* original_wd = fatso_alloc(MAXPATHLEN);
   original_wd = getcwd(original_wd, MAXPATHLEN);
@@ -85,7 +75,7 @@ make_install(struct fatso* f, struct fatso_package* p, fatso_report_progress_cal
     goto out;
   }
   progress(f, p, "make install", 0, 1);
-  r = fatso_system_with_callbacks("make install", &g_forward_stderr);
+  r = fatso_system_with_callbacks("make install", callbacks);
   if (r != 0) {
     fatso_logf(f, FATSO_LOG_FATAL, "Error during make install.");
     goto out_with_chdir;
@@ -109,6 +99,7 @@ fatso_guess_toolchain(struct fatso* f, struct fatso_package* p, struct fatso_too
   // TODO: Use 'toolchain' option in package.
   // TODO: Auto-detect CMakeLists.txt, bjam, SConstruct, etc.
 
+  out_toolchain->name = "make";
   out_toolchain->build = configure_and_make;
   out_toolchain->install = make_install;
   return 0;
