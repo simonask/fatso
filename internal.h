@@ -88,18 +88,18 @@ void fatso_dependency_destroy(struct fatso_dependency*);
 int fatso_dependency_parse(struct fatso_dependency*, struct yaml_document_s*, struct yaml_node_s*, char** out_error_message);
 void fatso_dependency_add_constraint(struct fatso_dependency*, const struct fatso_constraint* constraint);
 
-struct fatso_define {
+struct fatso_kv_pair {
   char* key;
   char* value;
 };
 
-void fatso_define_init(struct fatso_define*, const char* key, const char* value);
-void fatso_define_destroy(struct fatso_define*);
+void fatso_kv_pair_init(struct fatso_kv_pair*, const char* key, const char* value);
+void fatso_kv_pair_destroy(struct fatso_kv_pair*);
 
 struct fatso_configuration {
   char* name;
   FATSO_ARRAY(struct fatso_dependency) dependencies;
-  FATSO_ARRAY(struct fatso_define) defines;
+  FATSO_ARRAY(struct fatso_kv_pair) defines;
 };
 
 void fatso_configuration_init(struct fatso_configuration*);

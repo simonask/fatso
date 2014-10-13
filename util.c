@@ -274,3 +274,15 @@ char*
 fatso_strbuf_strndup(const fatso_strbuf_t* buf, size_t len) {
   return strndup(buf->data, len);
 }
+
+void
+fatso_kv_pair_init(struct fatso_kv_pair* def, const char* name, const char* value) {
+  def->key = strdup(name);
+  def->value = strdup(value);
+}
+
+void
+fatso_kv_pair_destroy(struct fatso_kv_pair* def) {
+  fatso_free(def->key);
+  fatso_free(def->value);
+}

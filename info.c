@@ -48,7 +48,7 @@ display_info_for_package(const struct fatso_package* p) {
   printf("defines:\n");
   // TODO: Use consolidated defines.
   for (size_t i = 0; i < p->base_configuration.defines.size; ++i) {
-    const struct fatso_define* def = &p->base_configuration.defines.data[i];
+    const struct fatso_kv_pair* def = &p->base_configuration.defines.data[i];
     printf("  %s: %s\n", def->key, def->value);
   }
 }

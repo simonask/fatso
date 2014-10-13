@@ -16,7 +16,7 @@ fatso_configuration_destroy(struct fatso_configuration* e) {
   }
   fatso_free(e->dependencies.data);
   for (size_t i = 0; i < e->defines.size; ++i) {
-    fatso_define_destroy(&e->defines.data[i]);
+    fatso_kv_pair_destroy(&e->defines.data[i]);
   }
   fatso_free(e->defines.data);
   memset(e, 0, sizeof(*e));
@@ -45,7 +45,7 @@ fatso_configuration_parse(struct fatso_configuration* e, struct yaml_document_s*
     size_t len = fatso_yaml_mapping_length(defines);
     if (len != 0) {
       e->defines.size = len;
-      e->defines.data = fatso_calloc(len, sizeof(struct fatso_define));
+      e->defines.data = fatso_calloc(len, sizeof(struct fatso_kv_pair));
       for (size_t i = 0; i < len; ++i) {
         yaml_node_pair_t* pair = &defines->data.mapping.pairs.start[i];
         yaml_node_t* key = yaml_document_get_node(doc, pair->key);
