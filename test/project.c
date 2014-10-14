@@ -8,8 +8,8 @@
 int main(int argc, char const *argv[])
 {
   yaml_parser_t yaml;
-  yaml_parser_init(&yaml);
+  yaml_parser_initialize(&yaml);
   printf("Hello, World!\n");
-  yaml_parser_destroy(&yaml);
+  yaml_parser_delete(&yaml);
   return 0;
 }

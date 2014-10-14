@@ -59,3 +59,27 @@ fatso_configuration_parse(struct fatso_configuration* e, struct yaml_document_s*
 out:
   return r;
 }
+
+static void
+merge_configurations(struct fatso_configuration* into, const struct fatso_configuration* other) {
+  for (size_t i = 0; i < other->dependencies.size; ++i) {
+    const struct fatso_dependency* dep = &other->dependencies.data[i];
+    struct fatso_dependency d;
+    fatso_dependency_init(&d, dep->name, dep->constraints.data, dep->constraints.size);
+    fatso_push_back_v(&into->dependencies, &d);
+  }
+
+  fatso_dictionary_merge(&into->defines, &other->defines);
+  fatso_dictionary_merge(&into->env, &other->env);
+}
+
+void
+fatso_configuration_add_package(struct fatso* f, struct fatso_configuration* config, struct fatso_package* p) {
+  merge_configurations(config, &p->base_configuration);
+
+  for (size_t i = 0; i < p->configurations.size; ++i) {
+    struct fatso_configuration* c = &p->configurations.data[i];
+    // TODO: Only merge it if we're interested in that configuration.
+    merge_configurations(config, c);
+  }
+}

@@ -120,6 +120,8 @@ fatso_package_build(struct fatso* f, struct fatso_package* p, const struct fatso
 
 int
 fatso_package_build_with_output(struct fatso* f, struct fatso_package* p, const struct fatso_toolchain* toolchain, fatso_report_progress_callback_t progress, const struct fatso_process_callbacks* callbacks) {
+  fatso_configuration_add_package(f, f->consolidated_configuration, p);
+  fatso_env_add_package(f, p);
   return toolchain->build(f, p, progress, callbacks);
 }
 

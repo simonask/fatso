@@ -11,6 +11,7 @@ extern "C" {
 struct fatso;
 struct fatso_project;
 struct fatso_logger;
+struct fatso_configuration;
 
 typedef int(*fatso_command_t)(struct fatso*, int argc, char* const* argv);
 
@@ -21,6 +22,7 @@ struct fatso {
   char* working_dir;
   struct fatso_project* project;
   const struct fatso_logger* logger;
+  struct fatso_configuration* consolidated_configuration;
 };
 
 enum fatso_log_level {

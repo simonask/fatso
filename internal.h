@@ -88,23 +88,22 @@ void fatso_dependency_destroy(struct fatso_dependency*);
 int fatso_dependency_parse(struct fatso_dependency*, struct yaml_document_s*, struct yaml_node_s*, char** out_error_message);
 void fatso_dependency_add_constraint(struct fatso_dependency*, const struct fatso_constraint* constraint);
 
-struct fatso_kv_pair {
-  char* key;
-  char* value;
-};
-
 void fatso_kv_pair_init(struct fatso_kv_pair*, const char* key, const char* value);
 void fatso_kv_pair_destroy(struct fatso_kv_pair*);
 
 struct fatso_configuration {
   char* name;
   FATSO_ARRAY(struct fatso_dependency) dependencies;
-  FATSO_ARRAY(struct fatso_kv_pair) defines;
+  fatso_dictionary_t defines;
+  fatso_dictionary_t env;
 };
 
 void fatso_configuration_init(struct fatso_configuration*);
 void fatso_configuration_destroy(struct fatso_configuration*);
 int fatso_configuration_parse(struct fatso_configuration* env, struct yaml_document_s*, struct yaml_node_s*, char** out_error_message);
+void fatso_configuration_add_package(struct fatso* f, struct fatso_configuration* config, struct fatso_package* package);
+void fatso_env_add_configuration(struct fatso* f, const struct fatso_configuration* config);
+void fatso_env_add_package(struct fatso* f, struct fatso_package* p);
 
 struct fatso_source_vtbl;
 

@@ -352,7 +352,18 @@ fatso_dependency_graph_add_dependencies_from_package(
     }
   }
 
-  // TODO: Add dependencies from additional configurations.
+  for (size_t i = 0; i < package->configurations.size; ++i) {
+    struct fatso_configuration* config = &package->configurations.data[i];
+    // TODO: Check that we're interested in this particular configuration
+    for (size_t j = 0; j < config->dependencies.size; ++j) {
+      struct fatso_dependency* dep = &config->dependencies.data[j];
+      int r = fatso_dependency_graph_add_open_set(graph, dep, package);
+      if (r != FATSO_DEPENDENCY_OK) {
+        return r;
+      }
+    }
+  }
+
   return FATSO_DEPENDENCY_OK;
 }
 
@@ -491,7 +502,21 @@ toposort_dependencies_r(
         // ERROR?! Dependency graph doesn't contain a package requested by dependency.
       }
     }
-    // TODO: Include auxillary configurations.
+
+    for (size_t i = 0; i < package->configurations.size; ++i) {
+      struct fatso_configuration* config = &package->configurations.data[i];
+      // TODO: Check that configuration is one we're interested in.
+      for (size_t j = 0; j < config->dependencies.size; ++j) {
+        struct fatso_dependency* dep = &config->dependencies.data[j];
+        struct fatso_package** pp = fatso_bsearch_v(dep->name, &graph->closed_set, compare_string_with_package_pointer);
+        if (pp) {
+          struct fatso_package* p = *pp;
+          toposort_dependencies_r(graph, f, p, out_list, seen);
+        } else {
+          // ERROR?! Dependency graph doesn't contain a package requested by dependency.
+        }
+      }
+    }
 
     if (package != graph->root) {
       fatso_push_back_v(out_list, &package);

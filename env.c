@@ -72,10 +72,12 @@ fatso_append_base_environment(struct fatso* f) {
   return 0;
 }
 
-int
-fatso_package_append_environment(struct fatso* f, struct fatso_package* p) {
-  // TODO!
-  return 0;
+void fatso_env_add_package(struct fatso* f, struct fatso_package* p) {
+  fatso_env_add_configuration(f, &p->base_configuration);
+  for (size_t i = 0; i < p->configurations.size; ++i) {
+    // TODO: Check that configuration is one we're interested in.
+    fatso_env_add_configuration(f, &p->configurations.data[i]);
+  }
 }
 
 int
@@ -89,15 +91,42 @@ fatso_load_environment(struct fatso* f) {
   if (f->project) {
     for (size_t i = 0; i < f->project->install_order.size; ++i) {
       struct fatso_package* p = f->project->install_order.data[i];
-      r = fatso_package_append_environment(f, p);
-      if (r != 0) {
-        goto out;
-      }
+      fatso_configuration_add_package(f, f->consolidated_configuration, p);
+      fatso_env_add_package(f, p);
     }
   }
 
+  fatso_env_add_configuration(f, f->consolidated_configuration);
+
 out:
   return r;
+}
+
+void
+fatso_env_add_configuration(struct fatso* f, const struct fatso_configuration* config) {
+  for (size_t i = 0; i < config->env.size; ++i) {
+    const struct fatso_kv_pair* pair = &config->env.data[i];
+
+    // TODO: Probably add more special cases?
+    if (strncmp("CFLAGS", pair->key, 7) == 0) {
+      append_env_words(pair->key, pair->value);
+    } else if (strncmp("CXXFLAGS", pair->key, 9) == 0) {
+      append_env_words(pair->key, pair->value);
+    } else if (strncmp("LDFLAGS", pair->key, 8) == 0) {
+      append_env_words(pair->key, pair->value);
+    } else if (strncmp("PATH", pair->key, 5) == 0) {
+      prepend_env_pathlist(pair->key, pair->value);
+    } else {
+      setenv(pair->key, pair->value, 1);
+    }
+  }
+
+  for (size_t i = 0; i < config->defines.size; ++i) {
+    char* def;
+    asprintf(&def, "-D%s=%s", config->defines.data[i].key, config->defines.data[i].value);
+    append_env_words("CFLAGS", def);
+    fatso_free(def);
+  }
 }
 
 static void

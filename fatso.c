@@ -38,6 +38,8 @@ fatso_init(struct fatso* f, const char* program_name) {
   f->global_dir = NULL;
   f->working_dir = NULL;
   f->logger = &g_default_logger;
+  f->consolidated_configuration = fatso_alloc(sizeof(struct fatso_configuration));
+  fatso_configuration_init(f->consolidated_configuration);
   return 0;
 }
 
