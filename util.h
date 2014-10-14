@@ -43,6 +43,31 @@ fatso_download(const char* target_path, const char* uri);
 
 #define FATSO_ARRAY(TYPE) struct { TYPE* data; size_t size; }
 
+struct fatso_kv_pair {
+  char* key;
+  char* value;
+};
+
+typedef FATSO_ARRAY(struct fatso_kv_pair) fatso_dictionary_t;
+
+void
+fatso_dictionary_init(fatso_dictionary_t* dict);
+
+void
+fatso_dictionary_destroy(fatso_dictionary_t* dict);
+
+const char*
+fatso_dictionary_get(const fatso_dictionary_t* dict, const char* key);
+
+const struct fatso_kv_pair*
+fatso_dictionary_set(fatso_dictionary_t* dict, const char* key, const char* value);
+
+const struct fatso_kv_pair*
+fatso_dictionary_insert(fatso_dictionary_t* dict, const struct fatso_kv_pair* pair);
+
+void
+fatso_dictionary_merge(fatso_dictionary_t* dict, const fatso_dictionary_t* other);
+
 /*
   fatso_lower_bound is identical to bsearch, except it returns a pointer to the first element that's *not* less than key,
   instead of NULL when the key is not found.

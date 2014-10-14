@@ -286,3 +286,69 @@ fatso_kv_pair_destroy(struct fatso_kv_pair* def) {
   fatso_free(def->key);
   fatso_free(def->value);
 }
+
+void
+fatso_dictionary_init(fatso_dictionary_t* dict) {
+  memset(dict, 0, sizeof(*dict));
+}
+
+void
+fatso_dictionary_destroy(fatso_dictionary_t* dict) {
+  for (size_t i = 0; i < dict->size; ++i) {
+    fatso_kv_pair_destroy(&dict->data[i]);
+  }
+  fatso_free(dict->data);
+  memset(dict, 0, sizeof(*dict));
+}
+
+static int
+compare_kv_pairs_by_key(const void* va, const void* vb) {
+  const struct fatso_kv_pair* a = va;
+  const struct fatso_kv_pair* b = vb;
+  return strcmp(a->key, b->key);
+}
+
+const char*
+fatso_dictionary_get(const fatso_dictionary_t* dict, const char* key) {
+  const struct fatso_kv_pair needle = {
+    .key = (char*)key,
+    .value = NULL
+  };
+  struct fatso_kv_pair* found = fatso_bsearch_v(&needle, dict, compare_kv_pairs_by_key);
+  if (found) {
+    return found->value;
+  }
+  return NULL;
+}
+
+const struct fatso_kv_pair*
+fatso_dictionary_set(fatso_dictionary_t* dict, const char* key, const char* value) {
+  const struct fatso_kv_pair inserting = {
+    .key = (char*)key,
+    .value = (char*)value,
+  };
+  return fatso_dictionary_insert(dict, &inserting);
+}
+
+const struct fatso_kv_pair*
+fatso_dictionary_insert(fatso_dictionary_t* dict, const struct fatso_kv_pair* pair) {
+  struct fatso_kv_pair* found = fatso_bsearch_v(pair, dict, compare_kv_pairs_by_key);
+  if (found) {
+    fatso_free(found->value);
+    found->value = strdup(pair->value);
+    return found;
+  } else {
+    struct fatso_kv_pair insert = {
+      .key = strdup(pair->key),
+      .value = strdup(pair->value),
+    };
+    return fatso_set_insert_v(dict, &insert, compare_kv_pairs_by_key);
+  }
+}
+
+void
+fatso_dictionary_merge(fatso_dictionary_t* dict, const fatso_dictionary_t* other) {
+  for (size_t i = 0; i < other->size; ++i) {
+    fatso_dictionary_insert(dict, &other->data[i]);
+  }
+}
