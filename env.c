@@ -96,8 +96,6 @@ fatso_load_environment(struct fatso* f) {
     }
     fatso_configuration_add_package(f, f->consolidated_configuration, &f->project->package);
     fatso_env_add_package(f, &f->project->package);
-  } else {
-    fatso_logf(f, FATSO_LOG_WARN, "Warning: No project!");
   }
 
 out:
@@ -127,6 +125,7 @@ fatso_env_add_configuration(struct fatso* f, const struct fatso_configuration* c
     char* def;
     asprintf(&def, "-D%s=%s", config->defines.data[i].key, config->defines.data[i].value);
     append_env_words("CFLAGS", def);
+    append_env_words("CXXFLAGS", def);
     fatso_free(def);
   }
 }
