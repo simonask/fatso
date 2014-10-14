@@ -94,9 +94,11 @@ fatso_load_environment(struct fatso* f) {
       fatso_configuration_add_package(f, f->consolidated_configuration, p);
       fatso_env_add_package(f, p);
     }
+    fatso_configuration_add_package(f, f->consolidated_configuration, &f->project->package);
+    fatso_env_add_package(f, &f->project->package);
+  } else {
+    fatso_logf(f, FATSO_LOG_WARN, "Warning: No project!");
   }
-
-  fatso_env_add_configuration(f, f->consolidated_configuration);
 
 out:
   return r;
