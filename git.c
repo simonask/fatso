@@ -27,13 +27,13 @@ git_clone_or_pull(struct fatso* f, struct fatso_package* package, struct fatso_s
 
   if (fatso_directory_exists(clone_path)) {
     // Run as `git pull`
-    asprintf(&cmd, "git -C %s pull", clone_path);
+    asprintf(&cmd, "git -C %s fetch", clone_path);
   } else {
     // Run as `git clone`
     asprintf(&cmd, "git clone --bare %s %s", data->url, clone_path);
   }
 
-  r = fatso_system(cmd);
+  r = fatso_system_defer_output_until_error(cmd);
   if (r != 0) {
     fatso_logf(f, FATSO_LOG_FATAL, "git command failed: %s", cmd);
     goto out;
@@ -56,11 +56,11 @@ git_checkout(struct fatso* f, struct fatso_package* package, struct fatso_source
   char* build_path_git;
   asprintf(&build_path_git, "%s/.git", build_path);
   if (fatso_directory_exists(build_path_git)) {
-    asprintf(&cmd, "git -C %s pull --depth=1 --branch=%s", build_path, data->ref);
+    asprintf(&cmd, "git -C %s fetch --depth 1 --update-shallow", build_path);
   } else {
-    asprintf(&cmd, "git clone file://%s %s --depth=1 --branch=%s", clone_path, build_path, data->ref);
+    asprintf(&cmd, "git clone file://%s %s --depth 1 --branch %s", clone_path, build_path, data->ref);
   }
-  r = fatso_system(cmd);
+  r = fatso_system_defer_output_until_error(cmd);
   if (r != 0) {
     fatso_logf(f, FATSO_LOG_FATAL, "git command failed: %s", cmd);
     goto out;
@@ -68,7 +68,7 @@ git_checkout(struct fatso* f, struct fatso_package* package, struct fatso_source
   fatso_free(cmd);
 
   asprintf(&cmd, "git -C %s checkout %s", build_path, data->ref);
-  r = fatso_system(cmd);
+  r = fatso_system_defer_output_until_error(cmd);
   if (r != 0) {
     fatso_logf(f, FATSO_LOG_FATAL, "git command failed: %s", cmd);
     goto out;
