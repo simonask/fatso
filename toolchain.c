@@ -29,7 +29,7 @@ configure_and_make(struct fatso* f, struct fatso_package* p, fatso_report_progre
   if (!fatso_file_exists(makefile_path)) {
     asprintf(&cmd, "%s/configure --prefix=%s", build_path, install_prefix);
     progress(f, p, "configure", 0, 1);
-    r = fatso_system_with_callbacks(cmd, callbacks);
+    r = fatso_system_defer_output_until_error(cmd);
     if (r != 0) {
       fatso_logf(f, FATSO_LOG_FATAL, "Error during configure.");
       goto out_with_chdir;
@@ -41,7 +41,7 @@ configure_and_make(struct fatso* f, struct fatso_package* p, fatso_report_progre
   asprintf(&cmd, "make -j%u -f %s", fatso_get_number_of_cpu_cores(), makefile_path);
 
   progress(f, p, cmd, 0, 1);
-  r = fatso_system_with_callbacks(cmd, callbacks);
+  r = fatso_system_defer_output_until_error(cmd);
   if (r != 0) {
     fatso_logf(f, FATSO_LOG_FATAL, "Error during make.");
     goto out_with_chdir;
@@ -75,7 +75,7 @@ make_install(struct fatso* f, struct fatso_package* p, fatso_report_progress_cal
     goto out;
   }
   progress(f, p, "make install", 0, 1);
-  r = fatso_system_with_callbacks("make install", callbacks);
+  r = fatso_system_defer_output_until_error("make install");
   if (r != 0) {
     fatso_logf(f, FATSO_LOG_FATAL, "Error during make install.");
     goto out_with_chdir;

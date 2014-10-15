@@ -159,6 +159,9 @@ int
 fatso_system(const char* command);
 
 int
+fatso_system_defer_output_until_error(const char* command);
+
+int
 fatso_system_with_callbacks(const char* command, const struct fatso_process_callbacks* callbacks);
 
 int

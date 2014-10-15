@@ -303,6 +303,16 @@ fatso_system(const char* command) {
 }
 
 int
+fatso_system_defer_output_until_error(const char* command) {
+  FATSO_ARRAY(char) output = {0};
+  int r = fatso_system_with_capture(command, &output.data, &output.size);
+  if (r != 0) {
+    write(fileno(stderr), output.data, output.size);
+  }
+  return r;
+}
+
+int
 fatso_system_with_callbacks(const char* command, const struct fatso_process_callbacks* callbacks) {
   const char* new_argv[] = {
     "sh",
