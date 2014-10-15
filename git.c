@@ -17,18 +17,78 @@ git_free(void* thunk) {
 }
 
 static int
-git_clone(struct fatso* f, struct fatso_package* package, struct fatso_source* source) {
-  return -1;
+git_clone_or_pull(struct fatso* f, struct fatso_package* package, struct fatso_source* source) {
+  int r;
+  struct git_data* data = source->thunk;
+  char* clone_path;
+  asprintf(&clone_path, "%s/sources/%s/git", fatso_home_directory(f), package->name);
+
+  char* git_control_path;
+  asprintf(&git_control_path, "%s/.git", clone_path);
+
+  char* cmd = NULL;
+
+  if (fatso_directory_exists(git_control_path)) {
+    // Run as `git pull`
+    asprintf(&cmd, "git -C %s pull", clone_path);
+  } else {
+    // Run as `git clone`
+    asprintf(&cmd, "git clone %s %s", data->url, clone_path);
+  }
+
+  r = fatso_system(cmd);
+  if (r != 0) {
+    fatso_logf(f, FATSO_LOG_FATAL, "git command failed: %s", cmd);
+    goto out;
+  }
+out:
+  fatso_free(clone_path);
+  fatso_free(git_control_path);
+  fatso_free(cmd);
+  return r;
 }
 
 static int
 git_checkout(struct fatso* f, struct fatso_package* package, struct fatso_source* source) {
-  return -1;
+  int r;
+  struct git_data* data = source->thunk;
+  char* cmd;
+  char* git_control_path;
+  char* build_path = fatso_package_build_path(f, package);
+  asprintf(&git_control_path, "%s/sources/%s/git/.git", fatso_home_directory(f), package->name);
+
+  char* build_path_git;
+  asprintf(&build_path_git, "%s/.git", build_path);
+  if (fatso_directory_exists(build_path_git)) {
+    asprintf(&cmd, "git -C %s pull --depth=1 --branch=%s", build_path, data->ref);
+  } else {
+    asprintf(&cmd, "git clone file://%s %s --depth=1 --branch=%s", git_control_path, build_path, data->ref);
+  }
+  r = fatso_system(cmd);
+  if (r != 0) {
+    fatso_logf(f, FATSO_LOG_FATAL, "git command failed: %s", cmd);
+    goto out;
+  }
+  fatso_free(cmd);
+
+  asprintf(&cmd, "git -C %s checkout %s", build_path, data->ref);
+  r = fatso_system(cmd);
+  if (r != 0) {
+    fatso_logf(f, FATSO_LOG_FATAL, "git command failed: %s", cmd);
+    goto out;
+  }
+
+out:
+  fatso_free(git_control_path);
+  fatso_free(cmd);
+  fatso_free(build_path);
+  fatso_free(build_path_git);
+  return r;
 }
 
 static const struct fatso_source_vtbl git_source_vtbl = {
   .type = "git",
-  .fetch = git_clone,
+  .fetch = git_clone_or_pull,
   .unpack = git_checkout,
   .free = git_free,
 };
