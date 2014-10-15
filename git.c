@@ -23,17 +23,14 @@ git_clone_or_pull(struct fatso* f, struct fatso_package* package, struct fatso_s
   char* clone_path;
   asprintf(&clone_path, "%s/sources/%s/git", fatso_home_directory(f), package->name);
 
-  char* git_control_path;
-  asprintf(&git_control_path, "%s/.git", clone_path);
-
   char* cmd = NULL;
 
-  if (fatso_directory_exists(git_control_path)) {
+  if (fatso_directory_exists(clone_path)) {
     // Run as `git pull`
     asprintf(&cmd, "git -C %s pull", clone_path);
   } else {
     // Run as `git clone`
-    asprintf(&cmd, "git clone %s %s", data->url, clone_path);
+    asprintf(&cmd, "git clone --bare %s %s", data->url, clone_path);
   }
 
   r = fatso_system(cmd);
@@ -43,7 +40,6 @@ git_clone_or_pull(struct fatso* f, struct fatso_package* package, struct fatso_s
   }
 out:
   fatso_free(clone_path);
-  fatso_free(git_control_path);
   fatso_free(cmd);
   return r;
 }
@@ -53,16 +49,16 @@ git_checkout(struct fatso* f, struct fatso_package* package, struct fatso_source
   int r;
   struct git_data* data = source->thunk;
   char* cmd;
-  char* git_control_path;
+  char* clone_path;
   char* build_path = fatso_package_build_path(f, package);
-  asprintf(&git_control_path, "%s/sources/%s/git/.git", fatso_home_directory(f), package->name);
+  asprintf(&clone_path, "%s/sources/%s/git", fatso_home_directory(f), package->name);
 
   char* build_path_git;
   asprintf(&build_path_git, "%s/.git", build_path);
   if (fatso_directory_exists(build_path_git)) {
     asprintf(&cmd, "git -C %s pull --depth=1 --branch=%s", build_path, data->ref);
   } else {
-    asprintf(&cmd, "git clone file://%s %s --depth=1 --branch=%s", git_control_path, build_path, data->ref);
+    asprintf(&cmd, "git clone file://%s %s --depth=1 --branch=%s", clone_path, build_path, data->ref);
   }
   r = fatso_system(cmd);
   if (r != 0) {
@@ -79,7 +75,7 @@ git_checkout(struct fatso* f, struct fatso_package* package, struct fatso_source
   }
 
 out:
-  fatso_free(git_control_path);
+  fatso_free(clone_path);
   fatso_free(cmd);
   fatso_free(build_path);
   fatso_free(build_path_git);
