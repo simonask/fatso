@@ -113,10 +113,20 @@ struct fatso_source {
   const struct fatso_source_vtbl* vtbl;
 };
 
+struct fatso_source_vtbl {
+  const char* type;
+  int(*fetch)(struct fatso*, struct fatso_package*, struct fatso_source*);
+  int(*unpack)(struct fatso*, struct fatso_package*, struct fatso_source*);
+  void(*free)(void* thunk);
+};
+
 int fatso_source_parse(struct fatso_source*, struct yaml_document_s*, struct yaml_node_s*, char** out_error_message);
 void fatso_source_free(struct fatso_source*);
 int fatso_source_fetch(struct fatso*, struct fatso_package*, struct fatso_source*);
 int fatso_source_unpack(struct fatso*, struct fatso_package*, struct fatso_source*);
+
+void fatso_tarball_source_init(struct fatso_source*, const char* url);
+void fatso_git_source_init(struct fatso_source*, const char* url, const char* ref);
 
 struct fatso_package_vtbl;
 

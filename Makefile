@@ -30,6 +30,7 @@ SOURCES := \
 	repository.c \
 	source.c \
 	sync.c \
+	tarball.c \
 	toolchain.c \
 	util.c \
 	version.c \
