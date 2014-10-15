@@ -20,6 +20,7 @@ SOURCES := \
 	env.c \
 	exec.c \
 	fatso.c \
+	git.c \
 	help.c \
 	info.c \
 	install.c \
