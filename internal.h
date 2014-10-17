@@ -165,6 +165,20 @@ struct fatso_toolchain {
 int fatso_guess_toolchain(struct fatso*, struct fatso_package*, struct fatso_toolchain* out_chain);
 int fatso_package_build_with_output(struct fatso* f, struct fatso_package* p, const struct fatso_toolchain* toolchain, fatso_report_progress_callback_t progress, const struct fatso_process_callbacks* stdio_callbacks);
 
+// Toolchain initializers:
+int fatso_init_toolchain_configure_and_make(struct fatso_toolchain* toolchain);
+int fatso_init_toolchain_plain_make(struct fatso_toolchain*);
+int fatso_init_toolchain_autotools_make(struct fatso_toolchain*);
+int fatso_init_toolchain_cmake(struct fatso_toolchain*);
+int fatso_init_toolchain_scons(struct fatso_toolchain*);
+int fatso_init_toolchain_bjam(struct fatso_toolchain*);
+
+// Toolchain common functions:
+int fatso_toolchain_run_configure(struct fatso* f, struct fatso_package* package, fatso_report_progress_callback_t progress, const struct fatso_process_callbacks* io_callbacks);
+int fatso_toolchain_run_make(struct fatso* f, struct fatso_package* package, fatso_report_progress_callback_t progress, const struct fatso_process_callbacks* io_callbacks);
+int fatso_toolchain_run_make_install(struct fatso* f, struct fatso_package* package, fatso_report_progress_callback_t progress, const struct fatso_process_callbacks* io_callbacks);
+
+
 enum fatso_repository_result {
   FATSO_PACKAGE_OK,
   FATSO_PACKAGE_UNKNOWN,

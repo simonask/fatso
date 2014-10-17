@@ -14,6 +14,7 @@ endif
 
 HEADERS := fatso.h util.h internal.h
 SOURCES := \
+	autotools.c \
 	build.c \
 	dependency.c \
 	configuration.c \
@@ -24,6 +25,7 @@ SOURCES := \
 	help.c \
 	info.c \
 	install.c \
+	make.c \
 	memory.c \
 	package.c \
 	process.c \
