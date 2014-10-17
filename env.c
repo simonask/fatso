@@ -48,6 +48,10 @@ fatso_append_base_environment(struct fatso* f) {
 #if defined(__APPLE__)
   // DYLD_LIBRARY_PATH
   prepend_env_pathlist("DYLD_LIBRARY_PATH", lib_path);
+  char* rpath_option;
+  asprintf(&rpath_option, "-rpath %s", lib_path);
+  append_env_words("LDFLAGS", rpath_option);
+  fatso_free(rpath_option);
 #elif defined(__linux)
   // LD_LIBRARY_PATH
   prepend_env_pathlist("LD_LIBRARY_PATH", lib_path);
