@@ -6,6 +6,24 @@
 #include <sys/param.h> // MAXPATHLEN
 #include <unistd.h> // getwd, chdir
 
+bool
+fatso_path_looks_like_configure_and_make_project(const char* path) {
+  char* configure_path;
+  asprintf(&configure_path, "%s/configure", path);
+  bool r = fatso_file_exists(configure_path);
+  fatso_free(configure_path);
+  return r;
+}
+
+bool
+fatso_path_looks_like_autotools_project(const char* path) {
+  char* autogen_sh_path;
+  asprintf(&autogen_sh_path, "%s/autogen.sh", path);
+  bool r = fatso_file_exists(autogen_sh_path);
+  fatso_free(autogen_sh_path);
+  return r;
+}
+
 int
 fatso_toolchain_run_configure(struct fatso* f, struct fatso_package* p, fatso_report_progress_callback_t progress, const struct fatso_process_callbacks* io_callbacks) {
   int r, r2;
@@ -66,4 +84,10 @@ fatso_init_toolchain_configure_and_make(struct fatso_toolchain* toolchain) {
   toolchain->build = fatso_toolchain_run_configure_and_make;
   toolchain->install = fatso_toolchain_run_make_install;
   return 0;
+}
+
+int
+fatso_init_toolchain_autotools_make(struct fatso_toolchain* toolchain) {
+  // TODO: Handle autogen.sh?
+  return fatso_init_toolchain_configure_and_make(toolchain);
 }

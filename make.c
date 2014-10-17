@@ -5,6 +5,15 @@
 #include <errno.h>
 #include <sys/param.h> // MAXPATHLEN
 
+bool
+fatso_path_looks_like_plain_make_project(const char* path) {
+  char* makefile_path;
+  asprintf(&makefile_path, "%s/Makefile", path);
+  bool r = fatso_file_exists(makefile_path);
+  fatso_free(makefile_path);
+  return r;
+}
+
 int
 fatso_init_toolchain_plain_make(struct fatso_toolchain* toolchain) {
   toolchain->name = "make";

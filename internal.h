@@ -173,6 +173,14 @@ int fatso_init_toolchain_cmake(struct fatso_toolchain*);
 int fatso_init_toolchain_scons(struct fatso_toolchain*);
 int fatso_init_toolchain_bjam(struct fatso_toolchain*);
 
+// Toolchain guessers:
+bool fatso_path_looks_like_configure_and_make_project(const char* path);
+bool fatso_path_looks_like_plain_make_project(const char* path);
+bool fatso_path_looks_like_autotools_project(const char* path);
+bool fatso_path_looks_like_cmake_project(const char* path);
+bool fatso_path_looks_like_scons_project(const char* path);
+bool fatso_path_looks_like_bjam_project(const char* path);
+
 // Toolchain common functions:
 int fatso_toolchain_run_configure(struct fatso* f, struct fatso_package* package, fatso_report_progress_callback_t progress, const struct fatso_process_callbacks* io_callbacks);
 int fatso_toolchain_run_make(struct fatso* f, struct fatso_package* package, fatso_report_progress_callback_t progress, const struct fatso_process_callbacks* io_callbacks);
