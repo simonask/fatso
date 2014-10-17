@@ -60,6 +60,7 @@ scons_install(struct fatso* f, struct fatso_package* p, fatso_report_progress_ca
 
   asprintf(&cmd, "scons install -Q PREFIX=%s", install_prefix);
   progress(f, p, cmd, 0, 1);
+  r = fatso_system_defer_output_until_error(cmd);
   if (r != 0) {
     fatso_logf(f, FATSO_LOG_FATAL, "Error during scons install.");
     goto out;
