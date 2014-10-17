@@ -30,7 +30,7 @@ git_clone_or_pull(struct fatso* f, struct fatso_package* package, struct fatso_s
     asprintf(&cmd, "git -C %s fetch", clone_path);
   } else {
     // Run as `git clone`
-    asprintf(&cmd, "git clone --bare %s %s", data->url, clone_path);
+    asprintf(&cmd, "git clone --mirror %s %s", data->url, clone_path);
   }
 
   r = fatso_system_defer_output_until_error(cmd);
@@ -53,13 +53,17 @@ git_checkout(struct fatso* f, struct fatso_package* package, struct fatso_source
   char* build_path = fatso_package_build_path(f, package);
   asprintf(&clone_path, "%s/sources/%s/git", fatso_home_directory(f), package->name);
 
-  char* build_path_git;
-  asprintf(&build_path_git, "%s/.git", build_path);
-  if (fatso_directory_exists(build_path_git)) {
-    asprintf(&cmd, "git -C %s fetch --depth 1 --update-shallow", build_path);
-  } else {
-    asprintf(&cmd, "git clone file://%s %s --depth 1 --branch %s", clone_path, build_path, data->ref);
+  if (fatso_directory_exists(build_path)) {
+    asprintf(&cmd, "rm -rf %s", build_path);
+    r = fatso_system_defer_output_until_error(cmd);
+    if (r != 0) {
+      fatso_logf(f, FATSO_LOG_FATAL, "Could not remove existing checkout.");
+      goto out;
+    }
+    fatso_free(cmd);
   }
+
+  asprintf(&cmd, "git clone file://%s %s --recursive --depth 1 --branch %s", clone_path, build_path, data->ref);
   r = fatso_system_defer_output_until_error(cmd);
   if (r != 0) {
     fatso_logf(f, FATSO_LOG_FATAL, "git command failed: %s", cmd);
@@ -78,7 +82,6 @@ out:
   fatso_free(clone_path);
   fatso_free(cmd);
   fatso_free(build_path);
-  fatso_free(build_path_git);
   return r;
 }
 
