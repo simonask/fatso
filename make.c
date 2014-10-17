@@ -24,13 +24,11 @@ fatso_init_toolchain_plain_make(struct fatso_toolchain* toolchain) {
 
 int
 fatso_toolchain_run_make(struct fatso* f, struct fatso_package* p, fatso_report_progress_callback_t progress, const struct fatso_process_callbacks* io_callbacks) {
-  int r, r2;
+  int r;
   char* cmd = NULL;
   char* build_path = fatso_package_build_path(f, p);
   char* install_prefix = fatso_package_install_prefix(f, p);
-  char* original_wd = fatso_alloc(MAXPATHLEN);
   char* makefile_path = NULL;
-  original_wd = getcwd(original_wd, MAXPATHLEN);
 
   r = chdir(build_path);
   if (r != 0) {
@@ -45,19 +43,11 @@ fatso_toolchain_run_make(struct fatso* f, struct fatso_package* p, fatso_report_
   r = fatso_system_defer_output_until_error(cmd);
   if (r != 0) {
     fatso_logf(f, FATSO_LOG_FATAL, "Error during make.");
-    goto out_with_chdir;
   }
   progress(f, p, cmd, 1, 1);
 
-out_with_chdir:
-  r2 = chdir(original_wd);
-  if (r2 != 0) {
-    r = r2;
-    fatso_logf(f, FATSO_LOG_WARN, "chdir: %s", strerror(errno));
-  }
 out:
   fatso_free(makefile_path);
-  fatso_free(original_wd);
   fatso_free(install_prefix);
   fatso_free(build_path);
   fatso_free(cmd);

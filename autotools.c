@@ -26,14 +26,11 @@ fatso_path_looks_like_autotools_project(const char* path) {
 
 int
 fatso_toolchain_run_configure(struct fatso* f, struct fatso_package* p, fatso_report_progress_callback_t progress, const struct fatso_process_callbacks* io_callbacks) {
-  int r, r2;
-  r = 0;
+  int r;
   char* cmd = NULL;
   char* build_path = fatso_package_build_path(f, p);
   char* install_prefix = fatso_package_install_prefix(f, p);
   char* makefile_path = NULL;
-  char* original_wd = fatso_alloc(MAXPATHLEN);
-  original_wd = getcwd(original_wd, MAXPATHLEN);
 
   r = chdir(build_path);
   if (r != 0) {
@@ -49,22 +46,15 @@ fatso_toolchain_run_configure(struct fatso* f, struct fatso_package* p, fatso_re
     r = fatso_system_defer_output_until_error(cmd);
     if (r != 0) {
       fatso_logf(f, FATSO_LOG_FATAL, "Error during configure.");
-      goto out_with_chdir;
+      goto out;
     }
     progress(f, p, "configure", 1, 1);
-    fatso_free(cmd);
   }
 
-out_with_chdir:
-  r2 = chdir(original_wd);
-  if (r2 != 0) {
-    r = r2;
-    fatso_logf(f, FATSO_LOG_WARN, "chdir: %s", strerror(errno));
-  }
 out:
+  fatso_free(cmd);
   fatso_free(makefile_path);
   fatso_free(build_path);
-  fatso_free(original_wd);
   fatso_free(install_prefix);
   return r;
 }
