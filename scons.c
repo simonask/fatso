@@ -34,6 +34,7 @@ scons_build(struct fatso* f, struct fatso_package* p, fatso_report_progress_call
   r = fatso_system_defer_output_until_error(cmd);
   if (r != 0) {
     fatso_logf(f, FATSO_LOG_FATAL, "Error during scons.");
+    goto out;
   }
   progress(f, p, cmd, 1, 1);
 
@@ -61,6 +62,7 @@ scons_install(struct fatso* f, struct fatso_package* p, fatso_report_progress_ca
   progress(f, p, cmd, 0, 1);
   if (r != 0) {
     fatso_logf(f, FATSO_LOG_FATAL, "Error during scons install.");
+    goto out;
   }
   progress(f, p, cmd, 1, 1);
 
