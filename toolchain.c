@@ -15,7 +15,7 @@ static const struct init_named_toolchain named_toolchains[] = {
   {"configure_and_make", fatso_init_toolchain_configure_and_make, fatso_path_looks_like_configure_and_make_project},
   {"make", fatso_init_toolchain_plain_make, fatso_path_looks_like_plain_make_project},
   // {"cmake", fatso_init_toolchain_cmake},
-  // {"scons", fatso_init_toolchain_scons},
+  {"scons", fatso_init_toolchain_scons, fatso_path_looks_like_scons_project},
   // {"bjam", fatso_init_toolchain_bjam},
   {NULL, NULL}
 };

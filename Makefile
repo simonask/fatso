@@ -31,6 +31,7 @@ SOURCES := \
 	process.c \
 	project.c \
 	repository.c \
+	scons.c \
 	source.c \
 	sync.c \
 	tarball.c \
