@@ -135,7 +135,7 @@ struct fatso_package {
   char* name;
   struct fatso_version version;
   char* author;
-  char* toolchain; // TODO: Autodetect
+  char* toolchain;
   struct fatso_source* source; // TODO: Multiple sources
   struct fatso_configuration base_configuration;
   FATSO_ARRAY(struct fatso_configuration) configurations;
