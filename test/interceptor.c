@@ -37,7 +37,7 @@
   X(31, fatso_system_with_capture) \
   X(32, fatso_unload_project) \
   X(33, fatso_upgrade)
-#define NUM_OVERRIDES 1
+#define NUM_OVERRIDES 34
 
 struct function_override {
   const char* symbol;
