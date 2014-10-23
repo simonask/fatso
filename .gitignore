@@ -4,3 +4,5 @@ fatso
 test/test
 test/.fatso
 test/projects
+*.dylib
+*.so
