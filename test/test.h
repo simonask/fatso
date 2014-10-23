@@ -23,10 +23,12 @@
 }
 
 static void asprintf_if(char** out_buffer, const char* fmt, ...) {
-  va_list ap;
-  va_start(ap, fmt);
-  vasprintf(out_buffer, fmt, ap);
-  va_end(ap);
+  if (fmt) {
+    va_list ap;
+    va_start(ap, fmt);
+    vasprintf(out_buffer, fmt, ap);
+    va_end(ap);
+  }
 }
 
 static int g_test_failed = 0;
