@@ -1,9 +1,45 @@
+#include <dlfcn.h>
+
 #include "test.h"
 #include "../internal.h"
 #include "../util.h"
 #include "../fatso.h"
 
+void* fatso_intercept(const char* symbol, void* new_function) {
+  static void* real_fatso_intercept = NULL;
+  if (!real_fatso_intercept) {
+    real_fatso_intercept = dlsym(RTLD_DEFAULT, "fatso_intercept_");
+  }
+  return ((void*(*)(const char*, void*))real_fatso_intercept)(symbol, new_function);
+}
+
+void fatso_interceptor_reset(void) {
+  static void* real_fatso_interceptor_reset = NULL;
+  if (!real_fatso_interceptor_reset) {
+    real_fatso_interceptor_reset = dlsym(RTLD_DEFAULT, "fatso_interceptor_reset_");
+  }
+  ((void(*)(void))real_fatso_interceptor_reset)();
+}
+
+static void*(*orig_fatso_alloc)(size_t) = NULL;
+static bool stub_fatso_alloc_called = false;
+static void* stub_fatso_alloc(size_t len) {
+  stub_fatso_alloc_called = true;
+  return orig_fatso_alloc(len);
+}
+
+static void test_interceptor() {
+  orig_fatso_alloc = (void*(*)(size_t))fatso_intercept("fatso_alloc", (void*)stub_fatso_alloc);
+  void* ptr = fatso_alloc(128);
+  ASSERT(stub_fatso_alloc_called == true);
+  fatso_interceptor_reset();
+  stub_fatso_alloc_called = false;
+  ptr = fatso_alloc(128);
+  ASSERT(stub_fatso_alloc_called == false);
+}
+
 static void test_fatso_version_from_string() {
+  void* ptr = fatso_alloc(120);
   struct fatso_version ver;
   fatso_version_from_string(&ver, "0.1.2a");
   ASSERT(ver.components.size == 4);
@@ -214,6 +250,13 @@ test_fatso_exec() {
 
 int main(int argc, char const *argv[])
 {
+  void* interceptor_found = dlsym(RTLD_DEFAULT, "fatso_intercept_");
+  if (!interceptor_found) {
+    fprintf(stderr, RED "Function interceptor not found! Please run with libtest-interceptor preloaded." RESET "\nOn Darwin:\n\tenv DYLD_INSERT_LIBRARIES=test/libtest-interceptor.dylib %s\nOn Linux:\n\tenv LD_PRELOAD=test/libtest-interceptor.so %s\n", argv[0], argv[0]);
+    _exit(1);
+  }
+
+  TEST(test_interceptor);
   TEST(test_fatso_version_from_string);
   TEST(test_fatso_version_compare);
   TEST(test_fatso_append);
