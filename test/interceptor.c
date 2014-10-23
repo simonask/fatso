@@ -3,7 +3,40 @@
 #include <string.h>
 
 #define FOREACH_OVERRIDE(X) \
-  X(0, fatso_alloc)
+  X( 0, fatso_alloc) \
+  X( 1, fatso_calloc) \
+  X( 2, fatso_build) \
+  X( 3, fatso_download) \
+  X( 4, fatso_env) \
+  X( 5, fatso_exec) \
+  X( 6, fatso_file_exists) \
+  X( 7, fatso_free) \
+  X( 8, fatso_get_homedir) \
+  X( 9, fatso_get_number_of_cpu_cores) \
+  X(10, fatso_guess_toolchain) \
+  X(11, fatso_help) \
+  X(12, fatso_home_directory) \
+  X(13, fatso_info) \
+  X(14, fatso_install) \
+  X(15, fatso_install_dependencies) \
+  X(16, fatso_logf) \
+  X(17, fatso_logz) \
+  X(18, fatso_mkdir_p) \
+  X(19, fatso_package_build) \
+  X(20, fatso_package_build_path) \
+  X(21, fatso_package_build_with_output) \
+  X(22, fatso_package_download) \
+  X(23, fatso_process_start) \
+  X(24, fatso_process_wait_all) \
+  X(25, fatso_process_wait) \
+  X(26, fatso_reallocf) \
+  X(27, fatso_sync) \
+  X(28, fatso_system) \
+  X(29, fatso_system_defer_output_until_error) \
+  X(30, fatso_system_with_callbacks) \
+  X(31, fatso_system_with_capture) \
+  X(32, fatso_unload_project) \
+  X(33, fatso_upgrade)
 #define NUM_OVERRIDES 1
 
 struct function_override {
