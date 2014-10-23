@@ -5,21 +5,9 @@
 #include "../util.h"
 #include "../fatso.h"
 
-void* fatso_intercept(const char* symbol, void* new_function) {
-  static void* real_fatso_intercept = NULL;
-  if (!real_fatso_intercept) {
-    real_fatso_intercept = dlsym(RTLD_DEFAULT, "fatso_intercept_");
-  }
-  return ((void*(*)(const char*, void*))real_fatso_intercept)(symbol, new_function);
-}
-
-void fatso_interceptor_reset(void) {
-  static void* real_fatso_interceptor_reset = NULL;
-  if (!real_fatso_interceptor_reset) {
-    real_fatso_interceptor_reset = dlsym(RTLD_DEFAULT, "fatso_interceptor_reset_");
-  }
-  ((void(*)(void))real_fatso_interceptor_reset)();
-}
+void* fatso_intercept(const char* symbol, void* new_function);
+void fatso_interceptor_reset(void);
+size_t fatso_interceptor_number_of_calls(const char* symbol);
 
 static void*(*orig_fatso_alloc)(size_t) = NULL;
 static bool stub_fatso_alloc_called = false;
@@ -29,9 +17,12 @@ static void* stub_fatso_alloc(size_t len) {
 }
 
 static void test_interceptor() {
+  size_t calls_before = fatso_interceptor_number_of_calls("fatso_alloc");
   orig_fatso_alloc = (void*(*)(size_t))fatso_intercept("fatso_alloc", (void*)stub_fatso_alloc);
   void* ptr = fatso_alloc(128);
+  size_t calls_after = fatso_interceptor_number_of_calls("fatso_alloc");
   ASSERT(stub_fatso_alloc_called == true);
+  ASSERT(calls_after == calls_before + 1);
   fatso_interceptor_reset();
   stub_fatso_alloc_called = false;
   ptr = fatso_alloc(128);
@@ -266,4 +257,28 @@ int main(int argc, char const *argv[])
   TEST(test_fatso_version_matches_constraint);
   TEST(test_fatso_exec);
   return g_any_test_failed;
+}
+
+void* fatso_intercept(const char* symbol, void* new_function) {
+  static void* real_fatso_intercept = NULL;
+  if (!real_fatso_intercept) {
+    real_fatso_intercept = dlsym(RTLD_DEFAULT, "fatso_intercept_");
+  }
+  return ((void*(*)(const char*, void*))real_fatso_intercept)(symbol, new_function);
+}
+
+void fatso_interceptor_reset(void) {
+  static void* real_fatso_interceptor_reset = NULL;
+  if (!real_fatso_interceptor_reset) {
+    real_fatso_interceptor_reset = dlsym(RTLD_DEFAULT, "fatso_interceptor_reset_");
+  }
+  ((void(*)(void))real_fatso_interceptor_reset)();
+}
+
+size_t fatso_interceptor_number_of_calls(const char* symbol) {
+  static void* real_fatso_interceptor_number_of_calls = NULL;
+  if (!real_fatso_interceptor_number_of_calls) {
+    real_fatso_interceptor_number_of_calls = dlsym(RTLD_DEFAULT, "fatso_interceptor_number_of_calls_");
+  }
+  return ((size_t(*)(const char*))real_fatso_interceptor_number_of_calls)(symbol);
 }

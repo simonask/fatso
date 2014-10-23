@@ -43,6 +43,7 @@ struct function_override {
   const char* symbol;
   void* original;
   void* overridden;
+  size_t num_calls;
 };
 
 static __attribute__((visibility("hidden")))
@@ -50,7 +51,7 @@ struct function_override g_overrides[NUM_OVERRIDES] = {{0}};
 
 #define OVERRIDE_TRAMPOLINE(IDX, SYMBOL) \
   void __attribute__((naked)) SYMBOL(void) { \
-    __asm__("movq %0, %%rax \n jmpq *%%rax\n" : /*output*/ : /*input*/ "m"(g_overrides[IDX].overridden) : /*clobbered*/ "%rax"); \
+    __asm__("movq %0, %%rax \n incq %1 \n jmpq *%%rax\n" : /*output*/ : /*input*/ "m"(g_overrides[IDX].overridden), "m"(g_overrides[IDX].num_calls) : /*clobbered*/ "%rax"); \
   }
 FOREACH_OVERRIDE(OVERRIDE_TRAMPOLINE)
 #undef OVERRIDE_TRAMPOLINE
@@ -71,6 +72,15 @@ void fatso_interceptor_reset_(void) {
     g_overrides[IDX].overridden = g_overrides[IDX].original;
   FOREACH_OVERRIDE(RESET_TRAMPOLINE)
   #undef RESET_TRAMPOLINE
+}
+
+size_t fatso_interceptor_number_of_calls_(const char* symbol) {
+  for (size_t i = 0; i < NUM_OVERRIDES; ++i) {
+    if (strcmp(g_overrides[i].symbol, symbol) == 0) {
+      return g_overrides[i].num_calls;
+    }
+  }
+  return 0;
 }
 
 void __attribute__((constructor))
