@@ -57,8 +57,8 @@ libfatso.a: $(OBJECTS)
 libfatso.$(SHLIBEXT): $(OBJECTS)
 	$(CC) $(LDFLAGS) -shared -o $@ $^ -lyaml
 
-fatso: main.o libfatso.dylib
-	$(CC) $(LDFLAGS) -o $@ $^ -lyaml -L. -lfatso
+fatso: main.o libfatso.a
+	$(CC) $(LDFLAGS) -o $@ $^ -lyaml
 
 TEST_INTERCEPTOR = test/libtest-interceptor.$(SHLIBEXT)
 
@@ -76,7 +76,7 @@ clean:
 	rm -f libfatso.a
 	rm -f libfatso.dylib
 	rm -f *.o
-	rm -f test/*.o test/test
+	rm -f test/*.o test/test $(TEST_INTERCEPTOR)
 
 analyze: $(SOURCES) $(HEADERS)
 	$(CC) --analyze $(CFLAGS) -Xanalyzer -analyzer-output=text $(SOURCES)
