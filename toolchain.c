@@ -1,9 +1,6 @@
 #include "fatso.h"
 #include "internal.h"
 
-#include <string.h> // strdup
-#include <stdlib.h> // system
-
 typedef int(*init_toolchain_t)(struct fatso_toolchain*);
 typedef bool(*guess_toolchain_t)(const char* path);
 
