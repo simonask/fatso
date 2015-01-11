@@ -12,7 +12,7 @@ Fatso supports the following build systems:
 - Plain GNU Make (TODO)
 - SCons (TODO)
 - bjam (TODO)
-- Custom scripts (TODO)
+- Custom scripts
 
 Fatso is still in very early stages of development.
 
@@ -47,7 +47,7 @@ Fatso will automatically detect the toolchain your project is using. If it fails
 to detect it, or your project needs special care while building, you have two
 options:
 
-1. Tell Fatso about it, by setting `toolchain: <build command>` in your
+1. Tell Fatso about it, by setting `toolchain: <build commands>` in your
    `fatso.yml`. Fatso will set the CFLAGS/LDFLAGS environment variables with
    the necessary options to build against your local Fatso environment, so if
    your build tool takes those into account, you should be fine.
