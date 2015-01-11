@@ -44,8 +44,10 @@ main(int argc, char* const* argv)
         fatso_set_project_directory(&fatso, optarg);
         break;
       default: {
-        char* append = strdup(argv[optind]);
-        fatso_push_back_v(&filtered_args, &append);
+        if (argv[optind]) {
+          char* append = strdup(argv[optind]);
+          fatso_push_back_v(&filtered_args, &append);
+        }
         break;
       }
     }
